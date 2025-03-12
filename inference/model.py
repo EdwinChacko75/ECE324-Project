@@ -10,15 +10,14 @@ def load_model(MODEL_NAME, PRESCISION):
 
     # llama models dont have pad_token
     # TODO: this is erroneous for models where pad already exists
-    tokenizer.pad_token = tokenizer.eos_token 
+    tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME,
-        torch_dtype=PRESCISION,
-        device_map="auto"  
+        MODEL_NAME, torch_dtype=PRESCISION, device_map="auto"
     )
 
     return model, tokenizer
+
 
 def run_inference():
     """
@@ -28,13 +27,14 @@ def run_inference():
     model, tokenizer = load_model()
 
     input_text = "The quick brown fox"
-    inputs = tokenizer(input_text, return_tensors="pt").to("cuda")  
+    inputs = tokenizer(input_text, return_tensors="pt").to("cuda")
 
     with torch.no_grad():
-        with torch.autocast("cuda", dtype=torch.float32):  
+        with torch.autocast("cuda", dtype=torch.float32):
             outputs = model.generate(**inputs, max_length=1000)
 
     print("Generated Output: ", tokenizer.decode(outputs[0]))
+
 
 if __name__ == "__main__":
     run_inference()
