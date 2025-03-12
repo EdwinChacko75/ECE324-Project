@@ -1,0 +1,11 @@
+# Ignore everything
+*
+
+# Allow Python files
+!*.py
+!*.json
+!*.md
+!*.gitignore
+
+# Allow directories so Python files in subdirectories are tracked
+!*/
