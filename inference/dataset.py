@@ -108,7 +108,7 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
         lambda x: {"prompt_length": len(x["prompt"])}
     )
 
-    # sort in reverse to get upper bound
+    # Sort in reverse to get upper bound
     prepared_dataset = prepared_dataset.sort("prompt_length", reverse=True)
 
     dataloader = DataLoader(

@@ -21,7 +21,7 @@ OUTPUT_FILE = os.path.join(RUN_DIR, "outputs.txt")
 CONFIG_FILE = ""
 
 BATCH_SIZE = 32
-PRESCISION = torch.float16  # Can adjust as needed torch.float32
+PRESCISION = torch.float16  # Can adjust as needed: torch.float32
 
 
 def main():

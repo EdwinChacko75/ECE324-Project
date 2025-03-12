@@ -1,7 +1,6 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-
 def load_model(MODEL_NAME, PRESCISION):
     """
     Load the specified model with the specified prescision.
