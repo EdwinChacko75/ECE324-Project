@@ -8,7 +8,7 @@ from utils import save_outputs_to_file, create_run_directory
 
 # Define the model and devices being used
 os.environ["CUDA_VISIBLE_DEVICES"] = "5,6"
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = "3,4,5"
 # MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
@@ -21,7 +21,7 @@ OUTPUT_FILE = os.path.join(RUN_DIR, "outputs.txt")
 CONFIG_FILE = ""
 
 BATCH_SIZE = 32
-PRESCISION = torch.float16  # Can adjust as needed: torch.float32
+PRESCISION = torch.float16  # Can adjust as needed torch.float32
 
 
 def main():
@@ -41,10 +41,12 @@ def main():
     for batch_idx, batch in enumerate(tqdm(dataloader, desc="Processing Batches")):
         prompts = batch["prompts"]
         batch_ground_truth_values = batch["ground_truth_values"]
+        breakpoint()
 
         inputs = tokenizer(
             prompts, return_tensors="pt", padding=True, truncation=True
         ).to("cuda")
+
         # print(f"Input token length: {inputs["input_ids"].shape[1]}")
 
         with torch.no_grad():

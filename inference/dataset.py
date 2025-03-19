@@ -16,10 +16,10 @@ def prepare_example(example):
     question = example.get("question")
     ground_truth = example.get("answer")
 
-    prompt = (
+    p = (
         f"Question: {question}\n"
-        "Answer: Please solve the problem and provide your answer in a detailed explanation. "
-        "Write the final numerical answer inside \\boxed{} at the end."
+        # "Answer: Please solve the problem and provide your answer in a detailed explanation. "
+        # r"Write the final numerical answer inside \boxed{} at the end."
     )
 
     ground_truth_value = None
@@ -27,7 +27,7 @@ def prepare_example(example):
         ground_truth_value = ground_truth.split("####")[-1].strip()
 
     return {
-        "prompt": prompt,
+        "prompt": p,
         "ground_truth": ground_truth,
         "ground_truth_value": ground_truth_value,
     }
@@ -101,14 +101,15 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
     """
     # Load dataset and prepare it
     dataset = datasets.load_dataset(dataset_name, "main", split="test")
-
-    prepared_dataset = dataset.map(prepare_example)
-
+    # breakpoint()
+    prepared_dataset = dataset.map(prepare_example, load_from_cache_file=False)
+    # prepared_dataset =dataset
     prepared_dataset = prepared_dataset.map(
-        lambda x: {"prompt_length": len(x["prompt"])}
+        lambda x: {"prompt_length": len(x["prompt"])},
+	load_from_cache_file=False
     )
 
-    # Sort in reverse to get upper bound
+    # sort in reverse to get upper bound
     prepared_dataset = prepared_dataset.sort("prompt_length", reverse=True)
 
     dataloader = DataLoader(

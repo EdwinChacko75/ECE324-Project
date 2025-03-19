@@ -16,7 +16,6 @@ def create_run_directory(base_dir="checkpoints", model_name="run", config=None):
     run_dir = os.path.join(base_dir, run_name)
     os.makedirs(run_dir, exist_ok=True)
 
-    # TODO
     if config:
         config_path = os.path.join(run_dir, "config.json")
         with open(config_path, "w") as f:
