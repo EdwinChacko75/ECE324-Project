@@ -100,7 +100,21 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
     Get the dataloader for a specified dataset.
     """
     # Load dataset and prepare it
-    dataset = datasets.load_dataset(dataset_name, "main", split="test")
+    
+    # testing data
+    if dataset_name == "gsm8k":
+        dataset = datasets.load_dataset(dataset_name, "main", split="test")
+    elif dataset_name == "HuggingFaceH4/MATH-500":
+        dataset = datasets.load_dataset(dataset_name, split="test")
+        
+    # training data
+    elif dataset_name == "Maxwell-Jia/AIME_2024":
+        dataset = datasets.load_dataset(dataset_name, split="train")  
+    
+    else:
+        raise ValueError(f"Unsupported dataset: {dataset_name}")
+    
+    
     # breakpoint()
     prepared_dataset = dataset.map(prepare_example, load_from_cache_file=False)
     # prepared_dataset =dataset
