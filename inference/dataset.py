@@ -4,7 +4,9 @@ import re
 from fractions import Fraction
 import math
 
+BATCH_SIZE = 32
 
+# for gsm8k
 def prepare_example(example):
     """
     Prepare a single example for inference:
@@ -25,6 +27,42 @@ def prepare_example(example):
     ground_truth_value = None
     if ground_truth and "####" in ground_truth:
         ground_truth_value = ground_truth.split("####")[-1].strip()
+
+    return {
+        "prompt": p,
+        "ground_truth": ground_truth,
+        "ground_truth_value": ground_truth_value,
+    }
+    
+# for aime2024
+def prepare_example_2(example):
+    question = example.get("Problem")
+    ground_truth = example.get("Solution")
+
+    p = (
+        f"Question: {question}\n"
+    )
+
+    ground_truth_value = example.get("Answer")
+    
+
+    return {
+        "prompt": p,
+        "ground_truth": ground_truth,
+        "ground_truth_value": ground_truth_value,
+    }
+    
+# for math500
+def prepare_example_3(example):
+    question = example.get("problem")
+    ground_truth = example.get("solution")
+
+    p = (
+        f"Question: {question}\n"
+    )
+
+    ground_truth_value = example.get("answer")
+    
 
     return {
         "prompt": p,
@@ -95,6 +133,33 @@ def compute_accuracy(predicted_values, ground_truth_values):
     return correct / total if total > 0 else 0
 
 
+def general_compute_accuracy(predictions, ground_truths):
+    """
+    Computes accuracy by comparing predictions and ground truths.
+    Handles both numerical and non-numerical (textual) answers.
+    """
+    correct = 0
+    total = len(predictions)
+
+    for pred, gt in zip(predictions, ground_truths):
+        # Normalize predictions and ground truth (strip whitespaces, lowercase)
+        pred_normalized = str(pred).strip().lower()
+        gt_normalized = str(gt).strip().lower()
+
+        # Attempt numerical comparison if both are numbers
+        try:
+            if float(pred_normalized) == float(gt_normalized):
+                correct += 1
+                continue
+        except ValueError:
+            pass  # Not numeric, fall back to string comparison
+
+        # Fallback to exact string match
+        if pred_normalized == gt_normalized:
+            correct += 1
+
+    return correct / total if total > 0 else 0
+
 def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
     """
     Get the dataloader for a specified dataset.
@@ -111,12 +176,14 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
     elif dataset_name == "Maxwell-Jia/AIME_2024":
         dataset = datasets.load_dataset(dataset_name, split="train")  
     
+    
+    ### can add more datasets
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
     
     
     # breakpoint()
-    prepared_dataset = dataset.map(prepare_example, load_from_cache_file=False)
+    prepared_dataset = dataset.map(prepare_example_3, load_from_cache_file=False)
     # prepared_dataset =dataset
     prepared_dataset = prepared_dataset.map(
         lambda x: {"prompt_length": len(x["prompt"])},
@@ -139,6 +206,15 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
 
 # This is testing of the accuracy computation. Sanity check before running a new model.
 if __name__ == "__main__":
+    #  # Get the dataloader
+    # print("Loading Dataset...")
+    # _, dataloader = load_dataset(dataset_name="HuggingFaceH4/MATH-500", batch_size=BATCH_SIZE)
+
+    # print(f"Loaded aime dataset successfully!")
+    # print(f"First example in dataset: {dataloader.dataset[1]}")  # Print the first example to inspect
+    
+    # assert 0
+    
     test_cases = [
         # Standard boxed format
         "The answer is \\boxed{42}.",
@@ -194,3 +270,9 @@ One of her friends saw half as many fairies as Katelyn saw come from the east an
     print(truth)
     print(pred)
     print(compute_accuracy(pred, truth))
+
+    
+    # test general_compute_accuracy
+    preds = [42, "hello world ", "3.1401", None]
+    gts = ["42", "Hello World", "3.14", "none"]
+    print(general_compute_accuracy(preds, gts))  # Output: 0.75 (75% correct)
