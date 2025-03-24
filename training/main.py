@@ -35,6 +35,8 @@ def main():
     print("Loading Model...")
     model, tokenizer = load_model(MODEL_NAME, PRESCISION)
 
+
+    epochs = 20
     learning_rate = 1e-4
     weight_decay = 0.01
 
@@ -53,6 +55,7 @@ def main():
         tokenizer,
         train_loader,
         PRESCISION,
+        epochs,
         OUTPUT_FILE,
         optimizer,
         scheduler=None,
