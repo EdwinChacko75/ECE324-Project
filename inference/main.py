@@ -41,7 +41,6 @@ def main():
     for batch_idx, batch in enumerate(tqdm(dataloader, desc="Processing Batches")):
         prompts = batch["prompts"]
         batch_ground_truth_values = batch["ground_truth_values"]
-        breakpoint()
 
         inputs = tokenizer(
             prompts, return_tensors="pt", padding=True, truncation=True
