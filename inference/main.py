@@ -27,7 +27,7 @@ PRESCISION = torch.float16  # Can adjust as needed torch.float32
 def main():
     # Get the dataloader
     print("Loading Dataset...")
-    _, dataloader = load_dataset(dataset_name="gsm8k", batch_size=BATCH_SIZE)
+    _, dataloader = load_dataset(dataset_name="HuggingFaceH4/MATH-500", batch_size=BATCH_SIZE)
 
     # Get the model and tokenizer
     print("Loading Model...")
