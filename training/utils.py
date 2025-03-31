@@ -1,7 +1,26 @@
 import os
 import json
 import datetime
+import yaml
 
+
+
+
+def load_config(config_path="config.yaml"):
+    with open(config_path, "r") as f:
+        config= yaml.safe_load(f)
+    config["learning_rate"] = float(config["learning_rate"])
+    config["weight_decay"] = float(config.get("weight_decay", 0.0))
+    config["warmup_steps"] = int(config.get("warmup_steps", 0))
+    config["epochs"] = int(config["epochs"])
+    config["batch_size"] = int(config["batch_size"])
+    config["eval_batch_size"] = int(config.get("eval_batch_size", config["batch_size"]))
+    config["gradient_accumulation_steps"] = int(config.get("gradient_accumulation_steps", 1))
+    config["logging_steps"] = int(config.get("logging_steps", 50))
+    config["eval_steps"] = int(config.get("eval_steps", 100))
+    config["save_steps"] = int(config.get("save_steps", 200))
+    config["save_total_limit"] = int(config.get("save_total_limit", 2))
+    return config
 
 def create_run_directory(base_dir="checkpoints", model_name="run", config=None):
     """

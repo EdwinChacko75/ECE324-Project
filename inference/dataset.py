@@ -24,7 +24,7 @@ def prepare_example_1(example):
     p = (
         f"Question: {question}\n"
         # "Answer: Please solve the problem and provide your answer in a detailed explanation. "
-        # r"Write the final numerical answer inside \boxed{} at the end."
+        r"Write the final numerical answer inside \boxed{} at the end."
     )
 
     ground_truth_value = None
@@ -125,6 +125,15 @@ def compute_accuracy(predicted_values, ground_truth_values):
     """
     Computes accuracy by comparing lists of predicted and ground truth numbers.
     """
+    # correct = 0
+    # for pred, truth in zip(predicted_values, ground_truth_values):
+    #     if isinstance(pred, str):
+    #         pred = extract_final_number(pred)
+    #     if isinstance(pred, str):
+    #         continue
+    #     if isinstance(pred, (int, float)) and truth is not None and math.isclose(pred, float(truth.replace(",", "")), rel_tol=1e-6):
+    #         correct +=1
+
     correct = sum(
         1
         for pred, truth in zip(predicted_values, ground_truth_values)

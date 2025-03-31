@@ -1,40 +1,31 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import get_peft_model, LoraConfig, TaskType
 
-
-def load_model(MODEL_NAME, PRESCISION):
+def load_model(MODEL_NAME, precision=torch.float16, use_lora=False):
     """
-    Load the specified model with the specified prescision.
+    Loads the model and tokenizer. Optionally applies LoRA.
     """
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-
-    # llama models dont have pad_token
-    # TODO: this is erroneous for models where pad already exists
-    tokenizer.pad_token = tokenizer.eos_token
+    # LLaMA models may not have a pad token so set it to the eos token
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME, torch_dtype=PRESCISION, device_map="auto"
+        MODEL_NAME, torch_dtype=precision, device_map="auto"
     )
 
+    if use_lora:
+        # Configure LoRA parameters
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=8,
+            lora_alpha=32,
+            lora_dropout=0.1,
+        )
+        model = get_peft_model(model, lora_config)
+        print("LoRA is enabled and has been applied to the model.")
+    else:
+        print("Using the base model without LoRA.")
+
     return model, tokenizer
-
-
-def run_inference():
-    """
-    Perform inference with all GPUs collaborating.
-    Used for testing.
-    """
-    model, tokenizer = load_model()
-
-    input_text = "The quick brown fox"
-    inputs = tokenizer(input_text, return_tensors="pt").to("cuda")
-
-    with torch.no_grad():
-        with torch.autocast("cuda", dtype=torch.float32):
-            outputs = model.generate(**inputs, max_length=1000)
-
-    print("Generated Output: ", tokenizer.decode(outputs[0]))
-
-
-if __name__ == "__main__":
-    run_inference()

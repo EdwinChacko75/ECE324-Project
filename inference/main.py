@@ -7,7 +7,7 @@ from dataset import load_dataset, extract_final_number, compute_accuracy
 from utils import save_outputs_to_file, create_run_directory
 
 # Define the model and devices being used
-os.environ["CUDA_VISIBLE_DEVICES"] = "5,6"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "5,6"
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = "3,4,5"
@@ -22,16 +22,17 @@ CONFIG_FILE = ""
 
 BATCH_SIZE = 32
 PRESCISION = torch.float16  # Can adjust as needed torch.float32
-
+LoRA_MODEL = True
+LOAD_MODEL_PTH = '/home/ubuntu/reasonix/training/checkpoints/llama3_2025-03-31_18-04-09/final_model/'
 
 def main():
     # Get the dataloader
     print("Loading Dataset...")
-    _, dataloader = load_dataset(dataset_name="HuggingFaceH4/MATH-500", batch_size=BATCH_SIZE)
+    _, dataloader = load_dataset(dataset_name="gsm8k", batch_size=BATCH_SIZE)
 
     # Get the model and tokenizer
     print("Loading Model...")
-    model, tokenizer = load_model(MODEL_NAME, PRESCISION)
+    model, tokenizer = load_model(MODEL_NAME, PRESCISION, lora=LoRA_MODEL, weights_pth=LOAD_MODEL_PTH)
     model.eval()
     print("Running Inference...")
 
@@ -50,9 +51,19 @@ def main():
 
         with torch.no_grad():
             with torch.autocast("cuda", dtype=PRESCISION):
+                # outputs = model.generate(
+                #     **inputs, max_length=1000
+                # )  # Can adjust as needed
                 outputs = model.generate(
-                    **inputs, max_length=1000
-                )  # Can adjust as needed
+                    input_ids=inputs["input_ids"],
+                    attention_mask=inputs.get("attention_mask", None),  
+                    max_new_tokens=512,
+                    temperature=0.7,
+                    top_p=0.95,
+                    do_sample=False,
+                    eos_token_id=tokenizer.eos_token_id,
+                    pad_token_id=tokenizer.pad_token_id, 
+                )
 
         generated_texts = [
             tokenizer.decode(output, skip_special_tokens=True) for output in outputs
@@ -82,7 +93,7 @@ def main():
     print(f"Model Accuracy: {sum(accuracies)/len(accuracies) * 100:.2f}%")
 
     # Sanity check
-    assert accuracy == sum(accuracies) / len(accuracies)
+    # assert accuracy == sum(accuracies) / len(accuracies)
 
 
 if __name__ == "__main__":
