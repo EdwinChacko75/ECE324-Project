@@ -1,7 +1,11 @@
 import os
 import json
 import datetime
+import yaml
 
+def load_config(config_path="config.yaml"):
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
 def create_run_directory(base_dir="checkpoints", model_name="run", config=None):
     """
