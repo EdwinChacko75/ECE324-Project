@@ -1,0 +1,44 @@
+# config.yaml
+
+# Model and Tokenizer
+model_name: "meta-llama/Llama-3.2-3B-Instruct"
+use_lora: true
+
+# Dataset
+dataset_name: "gsm8k"
+train_split: "train"
+eval_split: "test"
+max_length: 512
+shuffle_train: true
+shuffle_eval: false
+masked_language_modelling: false # Bert style
+
+# Training Hyperparameters
+batch_size: 16
+eval_batch_size: 8
+epochs: 5
+learning_rate: 5e-5 #2e-4
+weight_decay: 0.01
+warmup_steps: 100
+lr_scheduler_type: "linear"  # e.g., linear, cosine, constant
+gradient_accumulation_steps: 1
+
+# Precision
+precision: "bfloat16"  # Options: float16, bfloat16, float32
+
+# Logging & Saving
+logging_steps: 50
+save_steps: 150000
+eval_steps: 150000
+save_total_limit: 2
+evaluation_strategy: "steps"  # none | steps | epoch
+save_strategy: "steps"
+
+# Output and Checkpointing
+base_checkpoint_dir: "checkpoints"
+run_name_prefix: "llama3-3B"
+
+# Trainer options
+gradient_checkpointing: false
+fp16_full_eval: false
+load_best_model_at_end: true

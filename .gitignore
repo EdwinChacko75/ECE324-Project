@@ -4,6 +4,7 @@
 # Allow Python files
 !*.py
 !*.json
+!*.yaml
 !*.md
 !*.gitignore
 
