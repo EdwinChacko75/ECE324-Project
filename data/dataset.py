@@ -1,0 +1,328 @@
+import datasets
+from torch.utils.data import DataLoader
+import re
+from fractions import Fraction
+import math
+
+from sympy import sympify
+from latex2sympy import latex2sympy
+
+BATCH_SIZE = 32
+
+# for gsm8k
+def prepare_example_1(example):
+    """
+    Prepare a single example for inference:
+      - Extract the math problem as the question.
+      - Extract the detailed ground truth chain-of-thought.
+      - Parse out the final answer (ground truth value) which is preceded by "\boxed{".
+      - Format the prompt for the LLM.
+    """
+    question = example.get("question")
+    ground_truth = example.get("answer")
+    
+    ground_truth_value = None
+    if ground_truth and "####" in ground_truth:
+        ground_truth_value = ground_truth.split("####")[-1].strip()
+
+    prompt = (
+        f"Question: {question}\n"
+        f"Final Answer: {ground_truth_value}\n"
+        f"Original Steps:\n{ground_truth}\n\n"
+        "Now, rewrite this explanation in a clear, step-by-step format using natural language.\n"
+        "Start each step with a brief description of what the step is doing (e.g., 'Step N: [Describe goal of step].').\n"
+        "Then explain the logic and math in that step.\n"
+        "Always conclude with: \\boxed{<answer>}."
+    )
+
+
+
+    return {
+        "prompt": prompt,
+        "ground_truth": ground_truth,
+        "ground_truth_value": ground_truth_value,
+    }
+    
+# for math500
+def prepare_example_2(example):
+    question = example.get("problem")
+    ground_truth = example.get("solution")
+
+    p = (
+        f"Question: {question}\n"
+    )
+
+    ground_truth_value = example.get("answer")
+    
+
+    return {
+        "prompt": p,
+        "ground_truth": ground_truth,
+        "ground_truth_value": ground_truth_value,
+    }
+
+# for aime2024
+def prepare_example_3(example):
+    question = example.get("Problem")
+    ground_truth = example.get("Solution")
+
+    p = (
+        f"Question: {question}\n"
+    )
+
+    ground_truth_value = str(example.get("Answer"))
+    
+
+    return {
+        "prompt": p,
+        "ground_truth": ground_truth,
+        "ground_truth_value": ground_truth_value,
+    }
+    
+
+
+def collate_fn(batch):
+    """
+    Collate function for batching.
+    """
+    prompts = [item["prompt"] for item in batch]
+    ground_truths = [item["ground_truth"] for item in batch]
+    ground_truth_values = [item["ground_truth_value"] for item in batch]
+    return {
+        "prompts": prompts,
+        "ground_truths": ground_truths,
+        "ground_truth_values": ground_truth_values,
+    }
+
+
+def extract_final_number(text):
+    """
+    Extracts the final boxed answer from the model's output.
+    - Supports spaces inside \boxed{}
+    - Handles integers, decimals, negative numbers, and scientific notation.
+    """
+    if not text:
+        return None
+
+    match = re.findall(r"\\boxed{(.*?)}", text)
+
+    if not match or match == []:
+        num_match = re.findall(r"[-+]?\d*\.?\d+(?:e[-+]?\d+)?|[-+]?\d+/\d+", text)
+        if not num_match:
+            return None
+        return float(num_match[-1]) if "." in num_match[-1] else int(num_match[-1])
+
+    num_match = re.findall(r"[-+]?\d*\.?\d+(?:e[-+]?\d+)?|[-+]?\d+/\d+", text)
+    num_match = None if not num_match else num_match[-1]
+
+    num_str = match[-1].replace(",", "").strip()
+
+    try:
+        if "." in num_str or "e" in num_str:
+            return float(num_str)
+        if "/" in num_str:
+            return float(Fraction(num_str))
+        return int(num_str)
+    except:
+        return float(num_match)
+
+
+def compute_accuracy(predicted_values, ground_truth_values):
+    """
+    Computes accuracy by comparing lists of predicted and ground truth numbers.
+    """
+    # correct = 0
+    # for pred, truth in zip(predicted_values, ground_truth_values):
+    #     if isinstance(pred, str):
+    #         pred = extract_final_number(pred)
+    #     if isinstance(pred, str):
+    #         continue
+    #     if isinstance(pred, (int, float)) and truth is not None and math.isclose(pred, float(truth.replace(",", "")), rel_tol=1e-6):
+    #         correct +=1
+
+    correct = sum(
+        1
+        for pred, truth in zip(predicted_values, ground_truth_values)
+        if isinstance(pred, (int, float))
+        and truth is not None
+        and math.isclose(pred, float(truth.replace(",", "")), rel_tol=1e-6)
+    )
+
+    total = len(ground_truth_values)
+    return correct / total if total > 0 else 0
+
+
+def process_latex_answer(answer):
+    """
+    Converts Math500-style answers into numerical or text format.
+    Ensures ground truth values are evaluated correctly.
+    """
+    if not answer:
+        return None
+
+    answer = str(answer).strip()
+
+    # Handle text-based answers (e.g., \text{Evelyn})
+    text_match = re.match(r"\\text\{(.+?)\}", answer)
+    if text_match:
+        return text_match.group(1).strip()  # Extract text
+
+    # Handle mathematical expressions
+    try:
+        return latex2sympy(answer).evalf()  # Convert to numeric value
+    except:
+        return answer  # Fallback for unknown cases
+    
+def general_compute_accuracy(predictions, ground_truths):
+    """
+    Computes accuracy by comparing predictions and ground truths.
+    Handles both numerical and non-numerical (textual) answers.
+    """
+    correct = 0
+    total = len(predictions)
+
+    for pred, gt in zip(predictions, ground_truths):
+        pred_processed = process_latex_answer(pred)
+        gt_processed = process_latex_answer(gt)
+        
+        # Normalize predictions and ground truth (strip whitespaces, lowercase)
+        pred_normalized = str(pred_processed).strip().lower()
+        gt_normalized = str(gt_processed).strip().lower()
+
+        # # Skip if either is None (invalid input)
+        # if pred_normalized is None or gt_normalized is None:
+        #     continue
+
+        # # Check if both are numbers and use approximate comparison
+        # if isinstance(pred_normalized, float) and isinstance(gt_normalized, float):
+        #     if math.isclose(pred_normalized, gt_normalized, rel_tol=1e-6):
+        #         correct += 1
+        #         continue
+
+        # Fallback to exact string match for text
+        if pred_normalized == gt_normalized:
+            correct += 1
+
+    return correct / total if total > 0 else 0
+
+def load_dataset(dataset_name="gsm8k", batch_size=8, split=None, collate_fn=collate_fn):
+    """
+    Get the dataloader for a specified dataset.
+    """
+    # Load dataset and prepare it
+    
+    # testing data
+    if dataset_name == "gsm8k":
+        dataset = datasets.load_dataset(dataset_name, "main", split=split)
+        prepared_dataset = dataset.map(prepare_example_1, load_from_cache_file=False)
+    elif dataset_name == "HuggingFaceH4/MATH-500":
+        dataset = datasets.load_dataset(dataset_name, split=split)
+        prepared_dataset = dataset.map(prepare_example_2, load_from_cache_file=False)
+        
+    # training data
+    elif dataset_name == "Maxwell-Jia/AIME_2024":
+        dataset = datasets.load_dataset(dataset_name, split=split)  
+        prepared_dataset = dataset.map(prepare_example_3, load_from_cache_file=False)
+    
+    
+    ### can add more datasets
+    else:
+        raise ValueError(f"Unsupported dataset: {dataset_name}")
+    
+    
+    # breakpoint()
+    # prepared_dataset = dataset.map(prepare_example, load_from_cache_file=False)
+    # prepared_dataset =dataset
+    prepared_dataset = prepared_dataset.map(
+        lambda x: {"prompt_length": len(x["prompt"])},
+	load_from_cache_file=False
+    )
+
+    # sort in reverse to get upper bound
+    prepared_dataset = prepared_dataset.sort("prompt_length", reverse=True)
+
+    dataloader = DataLoader(
+        prepared_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=collate_fn,
+        pin_memory=True,
+    )
+
+    return dataset, dataloader
+
+
+# This is testing of the accuracy computation. Sanity check before running a new model.
+if __name__ == "__main__":
+    #  # Get the dataloader
+    # print("Loading Dataset...")
+    # _, dataloader = load_dataset(dataset_name="HuggingFaceH4/MATH-500", batch_size=BATCH_SIZE)
+
+    # print(f"Loaded aime dataset successfully!")
+    # print(f"First example in dataset: {dataloader.dataset[1]}")  # Print the first example to inspect
+    
+    # assert 0
+    
+    test_cases = [
+        # Standard boxed format
+        "The answer is \\boxed{42}.",
+        """Question: While playing with her friends in their school playground, Katelyn saw 50 fairies flying above the nearby forest. After about twenty minutes, one of her friends saw half as many fairies as Katelyn saw come from the east and join the fairies that were there. Ten minutes later, 30 fairies flew away. How many fairies are remaining?
+Answer: Please solve the problem and provide your answer in a detailed explanation. Ensure that your final answer is provided on a new line starting with '####' followed by the final numerical value.assistant
+
+#### Step 1: Determine the initial number of fairies Katelyn saw.
+Katelyn saw 50 fairies initially.
+
+#### Step 2: Calculate the number of fairies that joined Katelyn's group.
+One of her friends saw half as many fairies as Katelyn saw come from the east and join the fairies that were there. This means 50 / 2 = 25 fairies joined Katelyn's group.
+
+#### Step 3: Calculate the total number of fairies present after 20 minutes.
+50 (initial fairies) + 25 (fairies that joined) = 75 fairies.
+
+#### Step 4: Calculate the number of fairies that flew away.
+30 fairies flew away.
+
+#### Step 5: Calculate the number of fairies remaining.
+75 (total fairies present) - 30 (fairies that flew away) = 45 fairies.
+
+#### Step 6: Provide the final answer in the required format.
+#### \boxed{45}""",
+        # Extra spaces inside boxed
+        "After solving, we get: \\boxed{ 3.14 }.",
+        # Negative number
+        "Thus, the final answer is \\boxed{-27}.",
+        # Large number with comma (should be parsed as an integer)
+        "The final value is \\boxed{1,234}.",
+        # Scientific notation
+        "Using calculations, we find \\boxed{2.5e3}.",
+        # Incorrectly formatted box (should not extract anything)
+        "The result is \\box{100}.",
+        "The result is 1,002.",
+        # No box present
+        "I think the answer is -256.38, but I'm not sure.",
+        # Boxed appears mid-text
+        "We first calculate 10 + 5 = 15. Then, we have \\boxed{15}. The method used was...",
+        # Boxed with text inside (should not match)
+        "Finally, we get \\boxed{the answer is 99}.",
+        # Multiple boxed answers (should return the last one)
+        "We first compute \\boxed{12}. However, the final answer is \\boxed{24}.",
+        "We first compute \\boxed{12}. However, the final answer is \\boxed{24/2}.",
+    ]
+    truth = ["24,000" for x in test_cases]
+    pred = [extract_final_number(x) for x in test_cases]
+    for i, test in enumerate(test_cases):
+        extracted = extract_final_number(test)
+        print(f"Test {i+1}: Extracted -> {extracted}")
+
+    truth.append("24000")
+    pred.append(24000)
+    print(truth)
+    print(pred)
+    print(compute_accuracy(pred, truth))
+
+    
+    # test general_compute_accuracy
+    
+    # preds = ["7.141428", "10.816653", "Evelyn", "4.666667", "hello"]
+    # gts = [, "3\sqrt{13}", "\text{evelyn}", "\frac{14}{3}", "hello"]
+    print(process_latex_answer(r'\frac{14}{3}'))  
+    

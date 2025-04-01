@@ -1,0 +1,29 @@
+# config.yaml
+
+# Model
+model_name: meta-llama/Llama-3.2-3B-Instruct
+# model_name: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+
+use_lora: false
+lora_weights_path:  #/home/ubuntu/reasonix/training/checkpoints/llama3-3B_2025-03-31_23-13-23/final_model #/home/ubuntu/reasonix/training/checkpoints/llama3-3B-bf16-lora/final_model
+#llama3-3B_2025-03-31_20-06-51/final_model
+
+# Training / Inference
+precision: bfloat16
+batch_size: 48
+max_new_tokens: 512 # Effective max length
+temperature: 0.7
+top_p: 0.95
+do_sample: false
+early_stopping: true
+repetition_penalty: 1.0
+num_beams: 3
+# Dataset
+dataset_name: gsm8k
+split: "train"
+# Paths
+checkpoint_dir: checkpoints/
+output_file: train.jsonl
+
+# Optional: CUDA config (uncomment to use)
+# cuda_visible_devices: "3,4,5"
