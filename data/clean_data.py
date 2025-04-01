@@ -43,8 +43,37 @@ def process_inference_file(input_path, output_path):
             f.write("\n")
     print(f"Saved cleaned dataset with {len(cleaned)} examples to {output_path}")
 
+def validate_data(file_path="/home/ubuntu/reasonix/data/train.jsonl"):
+    match_count = 0
+    mismatch_count = 0
+    total = 0
+
+    with open(file_path, 'r') as f:
+        for line in f:
+            data = json.loads(line)
+            gt = str(data.get("ground_truth_value")).strip()
+            pred = str(data.get("predicted_value")).strip()
+            
+            total += 1
+            if gt == pred:
+                match_count += 1
+            else:
+                mismatch_count += 1
+
+    # Avoid division by zero
+    if total > 0:
+        match_pct = (match_count / total) * 100
+        mismatch_pct = (mismatch_count / total) * 100
+    else:
+        match_pct = mismatch_pct = 0
+
+    print(f"Total: {total}")
+    print(f"Matches: {match_count} ({match_pct:.2f}%)")
+    print(f"Mismatches: {mismatch_count} ({mismatch_pct:.2f}%)")
+
 # Example usage
 if __name__ == "__main__":
     input_jsonl = "/home/ubuntu/reasonix/data/train.jsonl"      
-    output_jsonl = "cot_cleaned_dataset.jsonl"
+    output_jsonl = "gsm8k_train.jsonl"
     process_inference_file(input_jsonl, output_jsonl)
+    validate_data(output_jsonl)

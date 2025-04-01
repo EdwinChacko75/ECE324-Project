@@ -4,7 +4,8 @@ from tqdm import tqdm
 
 from model import load_model
 from dataset import load_dataset, extract_final_number, compute_accuracy
-from utils import save_outputs_to_file, create_run_directory, load_config, save_outputs_to_json, save_jsonl_append
+from utils import load_config, save_jsonl_append
+from clean_data import process_inference_file, validate_data
 
 # Load config
 config = load_config()
@@ -14,14 +15,10 @@ if config.get("cuda_visible_devices"):
     os.environ["CUDA_VISIBLE_DEVICES"] = config["cuda_visible_devices"]
 
 MODEL_NAME = config["model_name"]
-LoRA_MODEL = config["use_lora"]
-LOAD_MODEL_PTH = config["lora_weights_path"]
 BATCH_SIZE = config["batch_size"]
 PRESCISION = getattr(torch, config["precision"])  # float16 -> torch.float16
 
 CP_DIR = os.path.join(os.getcwd(), config["checkpoint_dir"])
-# RUN_DIR = create_run_directory(CP_DIR, MODEL_NAME[:4])
-# OUTPUT_FILE = os.path.join(RUN_DIR, config["output_file_name"])
 OUTPUT_FILE = config["output_file"]
 def main():
     # Load dataset
@@ -34,9 +31,6 @@ def main():
     model.eval()
     print("Running Inference...")
     json_output_path = OUTPUT_FILE
-
-    accuracies = []
-    accuracy = 0
 
     for batch_idx, batch in enumerate(tqdm(dataloader, desc="Processing Batches")):
         prompts = batch["prompts"]
@@ -74,29 +68,12 @@ def main():
         ]
         save_jsonl_append(json_output_path, batch_results)
 
-        # batch_predictions = [extract_final_number(text) for text in generated_texts]
-        # batch_acc = compute_accuracy(batch_predictions, batch_ground_truth_values)
-        # accuracies.append(batch_acc)
-        # accuracy = (accuracy * batch_idx + batch_acc) / (batch_idx + 1)
-
-        # print(f"Cumulative Accuracy: {accuracy * 100:.2f}%")
-
-        # save_outputs_to_file(
-        #     OUTPUT_FILE,
-        #     batch_idx,
-        #     prompts,
-        #     generated_texts,
-        #     batch_ground_truth_values,
-        #     batch_acc,
-        #     accuracy,
-        # )
-        # Save as JSON in current working directory or in RUN_DIR
-
     print(f"Saved structured JSON output to {json_output_path}")
 
-    print(f"Model Accuracy: {accuracy * 100:.2f}%")
-    print(f"Model Accuracy: {sum(accuracies) / len(accuracies) * 100:.2f}%")
-
+    # Clean the data
+    output_jsonl = os.path.join(os.path.dirname(json_output_path), f"{config["dataset_name"]}_{config['split']}.jsonl")
+    process_inference_file(json_output_path, output_jsonl)
+    validate_data(output_jsonl)
 
 if __name__ == "__main__":
     main()
