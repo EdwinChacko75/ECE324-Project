@@ -37,7 +37,7 @@ def main():
 
     accuracies = []
     accuracy = 0
-    all_results =[]
+
     for batch_idx, batch in enumerate(tqdm(dataloader, desc="Processing Batches")):
         prompts = batch["prompts"]
         batch_ground_truth_values = batch["ground_truth_values"]

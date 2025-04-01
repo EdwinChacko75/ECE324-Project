@@ -10,7 +10,7 @@ lora_weights_path:  #/home/ubuntu/reasonix/training/checkpoints/llama3-3B_2025-0
 
 # Training / Inference
 precision: bfloat16
-batch_size: 48
+batch_size: 96
 max_new_tokens: 512 # Effective max length
 temperature: 0.7
 top_p: 0.95

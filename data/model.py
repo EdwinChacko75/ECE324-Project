@@ -40,24 +40,3 @@ def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
     print("LoRA is enabled and has been applied to the model.")
     return model, tokenizer
 
-
-
-def run_inference():
-    """
-    Perform inference with all GPUs collaborating.
-    Used for testing.
-    """
-    model, tokenizer = load_model()
-
-    input_text = "The quick brown fox"
-    inputs = tokenizer(input_text, return_tensors="pt").to("cuda")
-
-    with torch.no_grad():
-        with torch.autocast("cuda", dtype=torch.float32):
-            outputs = model.generate(**inputs, max_length=1000)
-
-    print("Generated Output: ", tokenizer.decode(outputs[0]))
-
-
-if __name__ == "__main__":
-    run_inference()
