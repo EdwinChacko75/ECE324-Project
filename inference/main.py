@@ -54,6 +54,9 @@ def main():
                     do_sample=config["do_sample"],
                     eos_token_id=tokenizer.eos_token_id,
                     pad_token_id=tokenizer.pad_token_id,
+                    early_stopping=config.get("early_stopping", False),
+                    repetition_penalty=config.get("repetition_penalty", 1.0),
+                    num_beams=config.get("num_beams", 1.0),
                 )
 
         generated_texts = [
