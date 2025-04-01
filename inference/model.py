@@ -34,7 +34,7 @@ def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
         model = PeftModel.from_pretrained(base_model, weights_pth)
         print(f"Loaded LoRA weights from {weights_pth}")
     else:
-        model = get_peft_model(model, lora_config)
+        model = get_peft_model(base_model, lora_config)
 
 
     print("LoRA is enabled and has been applied to the model.")

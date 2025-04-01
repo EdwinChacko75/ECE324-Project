@@ -2,23 +2,41 @@ from datasets import load_dataset
 
 
 def prepare_example(example):
-    """
-    Prepare an example by constructing a prompt.
-    Modify this function to include chain-of-thought details if desired.
-    """
     question = example.get("question")
     answer = example.get("answer")
-    # Customize your prompt formatting here.
-    prompt = f"Question: {question}\nAnswer: {answer}"
-    return {"prompt": prompt}
+    
+    # Create a CoT-style prompt
+    prompt = f"Question: {question}\nLet's think step by step."
+    full_answer = f"{prompt}\n{answer}"  # full input sequence
+    
+    return {
+        "prompt": prompt,
+        "full_text": full_answer
+    }
 
 def tokenize_function(example, tokenizer, max_length=512):
-    """
-    Tokenizes the prompt using the provided tokenizer.
-    """
-    # Use chain-of-thought formatting if available; for now, simply tokenize the prompt.
-    tokenized = tokenizer(example["prompt"], truncation=True, max_length=max_length)
-    return tokenized
+    full_text = example["full_text"]
+    prompt = example["prompt"]
+
+    # Tokenize prompt and full_text with truncation only (no padding)
+    full_tokens = tokenizer(full_text, truncation=True, max_length=max_length)
+    prompt_tokens = tokenizer(prompt, truncation=True, max_length=max_length)
+
+    # Append EOS token if there's room
+    # if len(full_tokens["input_ids"]) < max_length:
+    #     full_tokens["input_ids"].append(tokenizer.eos_token_id)
+    #     full_tokens["attention_mask"].append(1)
+
+    # Create labels: copy input_ids, then mask out prompt tokens with -100
+    labels = full_tokens["input_ids"].copy()
+    prompt_len = len(prompt_tokens["input_ids"])
+    labels[:prompt_len] = [-100] * prompt_len
+
+    full_tokens["labels"] = labels
+
+    return full_tokens
+
+
 
 def load_and_prepare_dataset(tokenizer, dataset_name="gsm8k", split="train", max_length=512):
     """

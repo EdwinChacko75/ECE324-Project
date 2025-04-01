@@ -5,6 +5,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
     DataCollatorForLanguageModeling,
+    DataCollatorWithPadding
+
 )
 from model import load_model
 from dataset import load_and_prepare_dataset
