@@ -14,6 +14,7 @@ config = load_config()
 if config.get("cuda_visible_devices"):
     os.environ["CUDA_VISIBLE_DEVICES"] = config["cuda_visible_devices"]
 
+DATASET = config["dataset_name"]
 MODEL_NAME = config["model_name"]
 BATCH_SIZE = config["batch_size"]
 PRESCISION = getattr(torch, config["precision"])  # float16 -> torch.float16
@@ -23,11 +24,11 @@ OUTPUT_FILE = config["output_file"]
 def main():
     # Load dataset
     print("Loading Dataset...")
-    _, dataloader = load_dataset(dataset_name=config["dataset_name"], batch_size=BATCH_SIZE, split=config['split'])
+    _, dataloader = load_dataset(dataset_name=DATASET, batch_size=BATCH_SIZE, split=config['split'])
 
     # Load model
     print("Loading Model...")
-    model, tokenizer = load_model(MODEL_NAME, PRESCISION, lora=LoRA_MODEL, weights_pth=LOAD_MODEL_PTH)
+    model, tokenizer = load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None)
     model.eval()
     print("Running Inference...")
     json_output_path = OUTPUT_FILE
@@ -71,7 +72,7 @@ def main():
     print(f"Saved structured JSON output to {json_output_path}")
 
     # Clean the data
-    output_jsonl = os.path.join(os.path.dirname(json_output_path), f"{config["dataset_name"]}_{config['split']}.jsonl")
+    output_jsonl = os.path.join(os.path.dirname(json_output_path), f"{DATASET}_{config['split']}.jsonl")
     process_inference_file(json_output_path, output_jsonl)
     validate_data(output_jsonl)
 
