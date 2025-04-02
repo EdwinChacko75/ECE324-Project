@@ -7,10 +7,9 @@ import math
 from sympy import sympify
 from latex2sympy import latex2sympy
 
-BATCH_SIZE = 32
 
 # for gsm8k
-def prepare_example_1(example):
+def gsm8k_instruct(example):
     """
     Prepare a single example for inference:
       - Extract the math problem as the question.
@@ -20,11 +19,16 @@ def prepare_example_1(example):
     """
     question = example.get("question")
     ground_truth = example.get("answer")
-
-    p = (
+    
+    prompt = (
+        "Question: If you buy 3 apples for $2 each and a banana for $1, how much do you spend?\n"
+        "Answer: Let's solve it step by step.\n"
+        "Step 1: Calculate the cost of the apples. 3 * $2 = $6.\n"
+        "Step 2: The banana costs $1.\n"
+        "Step 3: Add the costs together. $6 + $1 = \\boxed{7}\n"
+        "Total cost = \\boxed{7}\n"
         f"Question: {question}\n"
-        # "Answer: Please solve the problem and provide your answer in a detailed explanation. "
-        r"Write the final numerical answer inside \boxed{} at the end."
+        "Answer: Let's solve it step by step.\n"
     )
 
     ground_truth_value = None
@@ -32,7 +36,7 @@ def prepare_example_1(example):
         ground_truth_value = ground_truth.split("####")[-1].strip()
 
     return {
-        "prompt": p,
+        "prompt": prompt,
         "ground_truth": ground_truth,
         "ground_truth_value": ground_truth_value,
     }
@@ -199,7 +203,7 @@ def general_compute_accuracy(predictions, ground_truths):
 
     return correct / total if total > 0 else 0
 
-def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
+def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn, instruct=None):
     """
     Get the dataloader for a specified dataset.
     """
@@ -208,7 +212,7 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
     # testing data
     if dataset_name == "gsm8k":
         dataset = datasets.load_dataset(dataset_name, "main", split="test")
-        prepared_dataset = dataset.map(prepare_example_1, load_from_cache_file=False)
+        prepared_dataset = dataset.map(gsm8k_instruct, load_from_cache_file=False)
     elif dataset_name == "HuggingFaceH4/MATH-500":
         dataset = datasets.load_dataset(dataset_name, split="test")
         prepared_dataset = dataset.map(prepare_example_2, load_from_cache_file=False)
@@ -245,78 +249,3 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn):
 
     return dataset, dataloader
 
-
-# This is testing of the accuracy computation. Sanity check before running a new model.
-if __name__ == "__main__":
-    #  # Get the dataloader
-    # print("Loading Dataset...")
-    # _, dataloader = load_dataset(dataset_name="HuggingFaceH4/MATH-500", batch_size=BATCH_SIZE)
-
-    # print(f"Loaded aime dataset successfully!")
-    # print(f"First example in dataset: {dataloader.dataset[1]}")  # Print the first example to inspect
-    
-    # assert 0
-    
-    test_cases = [
-        # Standard boxed format
-        "The answer is \\boxed{42}.",
-        """Question: While playing with her friends in their school playground, Katelyn saw 50 fairies flying above the nearby forest. After about twenty minutes, one of her friends saw half as many fairies as Katelyn saw come from the east and join the fairies that were there. Ten minutes later, 30 fairies flew away. How many fairies are remaining?
-Answer: Please solve the problem and provide your answer in a detailed explanation. Ensure that your final answer is provided on a new line starting with '####' followed by the final numerical value.assistant
-
-#### Step 1: Determine the initial number of fairies Katelyn saw.
-Katelyn saw 50 fairies initially.
-
-#### Step 2: Calculate the number of fairies that joined Katelyn's group.
-One of her friends saw half as many fairies as Katelyn saw come from the east and join the fairies that were there. This means 50 / 2 = 25 fairies joined Katelyn's group.
-
-#### Step 3: Calculate the total number of fairies present after 20 minutes.
-50 (initial fairies) + 25 (fairies that joined) = 75 fairies.
-
-#### Step 4: Calculate the number of fairies that flew away.
-30 fairies flew away.
-
-#### Step 5: Calculate the number of fairies remaining.
-75 (total fairies present) - 30 (fairies that flew away) = 45 fairies.
-
-#### Step 6: Provide the final answer in the required format.
-#### \boxed{45}""",
-        # Extra spaces inside boxed
-        "After solving, we get: \\boxed{ 3.14 }.",
-        # Negative number
-        "Thus, the final answer is \\boxed{-27}.",
-        # Large number with comma (should be parsed as an integer)
-        "The final value is \\boxed{1,234}.",
-        # Scientific notation
-        "Using calculations, we find \\boxed{2.5e3}.",
-        # Incorrectly formatted box (should not extract anything)
-        "The result is \\box{100}.",
-        "The result is 1,002.",
-        # No box present
-        "I think the answer is -256.38, but I'm not sure.",
-        # Boxed appears mid-text
-        "We first calculate 10 + 5 = 15. Then, we have \\boxed{15}. The method used was...",
-        # Boxed with text inside (should not match)
-        "Finally, we get \\boxed{the answer is 99}.",
-        # Multiple boxed answers (should return the last one)
-        "We first compute \\boxed{12}. However, the final answer is \\boxed{24}.",
-        "We first compute \\boxed{12}. However, the final answer is \\boxed{24/2}.",
-    ]
-    truth = ["24,000" for x in test_cases]
-    pred = [extract_final_number(x) for x in test_cases]
-    for i, test in enumerate(test_cases):
-        extracted = extract_final_number(test)
-        print(f"Test {i+1}: Extracted -> {extracted}")
-
-    truth.append("24000")
-    pred.append(24000)
-    print(truth)
-    print(pred)
-    print(compute_accuracy(pred, truth))
-
-    
-    # test general_compute_accuracy
-    
-    # preds = ["7.141428", "10.816653", "Evelyn", "4.666667", "hello"]
-    # gts = [, "3\sqrt{13}", "\text{evelyn}", "\frac{14}{3}", "hello"]
-    print(process_latex_answer(r'\frac{14}{3}'))  
-    

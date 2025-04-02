@@ -3,6 +3,22 @@ import json
 import datetime
 import yaml
 
+def save_outputs_to_json(output_path, all_outputs):
+    """
+    Saves all outputs in a structured JSON format.
+    """
+    with open(output_path, "w") as f:
+        json.dump(all_outputs, f, indent=2)
+
+def save_jsonl_append(file_path, examples):
+    """
+    Appends a list of dicts (examples) to a JSONL file.
+    """
+    with open(file_path, "a") as f:
+        for ex in examples:
+            json.dump(ex, f)
+            f.write("\n")
+
 def load_config(config_path="config.yaml"):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
@@ -14,7 +30,7 @@ def create_run_directory(base_dir="checkpoints", model_name="run", config=None):
     """
     os.makedirs(base_dir, exist_ok=True)
 
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    timestamp = datetime.datetime.now().strftime("%d_%H-%M")
 
     run_name = f"{model_name}_{timestamp}"
     run_dir = os.path.join(base_dir, run_name)

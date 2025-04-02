@@ -1,10 +1,11 @@
 import os
 import torch
+import shutil
 from tqdm import tqdm
 
 from model import load_model
 from dataset import load_dataset, extract_final_number, compute_accuracy
-from utils import save_outputs_to_file, create_run_directory, load_config
+from utils import save_outputs_to_file, create_run_directory, load_config 
 
 # Load config
 config = load_config()
@@ -15,13 +16,13 @@ if config.get("cuda_visible_devices"):
 
 MODEL_NAME = config["model_name"]
 LoRA_MODEL = config["use_lora"]
-LOAD_MODEL_PTH = config["lora_weights_path"]
+LOAD_MODEL_PTH = config["weights_path"] 
 BATCH_SIZE = config["batch_size"]
 PRESCISION = getattr(torch, config["precision"])  # float16 -> torch.float16
 
-CP_DIR = os.path.join(os.getcwd(), config["checkpoint_dir"])
-RUN_DIR = create_run_directory(CP_DIR, MODEL_NAME[:4])
+RUN_DIR = create_run_directory(config["checkpoint_dir"], MODEL_NAME[:4])
 OUTPUT_FILE = os.path.join(RUN_DIR, config["output_file_name"])
+FINAL_DIR = os.path.join(config["checkpoint_dir"], f"{os.path.basename(os.path.dirname(LOAD_MODEL_PTH))}{os.path.basename(RUN_DIR)[4:]}"  )
 
 def main():
     # Load dataset
@@ -62,7 +63,6 @@ def main():
         generated_texts = [
             tokenizer.decode(output, skip_special_tokens=True) for output in outputs
         ]
-
         batch_predictions = [extract_final_number(text) for text in generated_texts]
         batch_acc = compute_accuracy(batch_predictions, batch_ground_truth_values)
         accuracies.append(batch_acc)
@@ -82,6 +82,12 @@ def main():
 
     print(f"Model Accuracy: {accuracy * 100:.2f}%")
     print(f"Model Accuracy: {sum(accuracies) / len(accuracies) * 100:.2f}%")
+
+
+    print(f"Inference complete. Outputs saved to: {FINAL_DIR}")
+    if os.path.exists(FINAL_DIR):
+        shutil.rmtree(FINAL_DIR)  
+    shutil.move(RUN_DIR, FINAL_DIR)
 
 
 if __name__ == "__main__":

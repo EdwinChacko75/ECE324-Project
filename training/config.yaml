@@ -1,8 +1,8 @@
 # config.yaml
 
 # Model and Tokenizer
-model_name: "meta-llama/Llama-3.2-3B-Instruct"
-use_lora: true
+model_name: "meta-llama/Llama-3.2-3B"
+use_lora: false
 
 # Dataset
 dataset_name: "gsm8k"
@@ -14,9 +14,9 @@ shuffle_eval: false
 masked_language_modelling: false # Bert style
 
 # Training Hyperparameters
-batch_size: 16
+batch_size: 8
 eval_batch_size: 8
-epochs: 5
+epochs: 3
 learning_rate: 5e-5 #2e-4
 weight_decay: 0.01
 warmup_steps: 100
@@ -35,8 +35,7 @@ evaluation_strategy: "steps"  # none | steps | epoch
 save_strategy: "steps"
 
 # Output and Checkpointing
-base_checkpoint_dir: "checkpoints"
-run_name_prefix: "llama3-3B"
+checkpoint_dir: /home/ubuntu/reasonix/training/checkpoints/
 
 # Trainer options
 gradient_checkpointing: false

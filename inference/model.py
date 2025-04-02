@@ -7,20 +7,26 @@ def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
     """
     Load the specified model with the specified prescision.
     """
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = 'left'
+    if weights_pth is not None:
+        tokenizer = AutoTokenizer.from_pretrained(weights_pth)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.padding_side = 'left'
 
     base_model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME, torch_dtype=PRESCISION, device_map="auto"
     )
 
-    # TODO base model weights (non lora)
-    # if weights_pth is not None and not lora:
-    #     base_model.load_wegits()
-
+    # Non lora weights
     if not lora:
-        print("Using the base model without LoRA.")
+        if weights_pth is not None:
+            model = AutoModelForCausalLM.from_pretrained(
+                weights_pth, torch_dtype=PRESCISION, device_map="auto"
+            )
+            print(f"Loaded model weights from {weights_pth}")
+        
+        print("Using the base model without LoRA weights.")
         return base_model, tokenizer
 
     # Configure LoRA parameters
@@ -35,29 +41,5 @@ def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
         print(f"Loaded LoRA weights from {weights_pth}")
     else:
         model = get_peft_model(base_model, lora_config)
-
-
     print("LoRA is enabled and has been applied to the model.")
     return model, tokenizer
-
-
-
-def run_inference():
-    """
-    Perform inference with all GPUs collaborating.
-    Used for testing.
-    """
-    model, tokenizer = load_model()
-
-    input_text = "The quick brown fox"
-    inputs = tokenizer(input_text, return_tensors="pt").to("cuda")
-
-    with torch.no_grad():
-        with torch.autocast("cuda", dtype=torch.float32):
-            outputs = model.generate(**inputs, max_length=1000)
-
-    print("Generated Output: ", tokenizer.decode(outputs[0]))
-
-
-if __name__ == "__main__":
-    run_inference()

@@ -29,7 +29,7 @@ def create_run_directory(base_dir="checkpoints", model_name="run", config=None):
     """
     os.makedirs(base_dir, exist_ok=True)
 
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    timestamp = datetime.datetime.now().strftime("%d_%H-%M")
 
     run_name = f"{model_name}_{timestamp}"
     run_dir = os.path.join(base_dir, run_name)

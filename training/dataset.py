@@ -1,5 +1,5 @@
 from datasets import load_dataset
-
+import os
 
 def prepare_example(example):
     question = example.get("question")
@@ -42,7 +42,15 @@ def load_and_prepare_dataset(tokenizer, dataset_name="gsm8k", split="train", max
     """
     Load the dataset and apply the preparation and tokenization.
     """
-    dataset = load_dataset(dataset_name, "main", split=split)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    file_path = os.path.join(base_dir, "data", f"{dataset_name}_{split}.jsonl")
+
+    if os.path.exists(file_path):
+        dataset = load_dataset("json", data_files=file_path, split="train")
+        print(f"Loading processed data from {file_path}")
+    else:
+        dataset = load_dataset(dataset_name, "main", split=split)
+        
     dataset = dataset.map(prepare_example, load_from_cache_file=False)
     tokenized_dataset = dataset.map(
         lambda ex: tokenize_function(ex, tokenizer, max_length),
