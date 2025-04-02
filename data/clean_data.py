@@ -73,7 +73,7 @@ def validate_data(file_path="/home/ubuntu/reasonix/data/train.jsonl"):
 
 # Example usage
 if __name__ == "__main__":
-    input_jsonl = "/home/ubuntu/reasonix/data/train.jsonl"      
-    output_jsonl = "gsm8k_train.jsonl"
+    input_jsonl = "/home/ubuntu/reasonix/data/deepseek.jsonl"      
+    output_jsonl = "gsm8k_train_deepseek.jsonl"
     process_inference_file(input_jsonl, output_jsonl)
     validate_data(output_jsonl)

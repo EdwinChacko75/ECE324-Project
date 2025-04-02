@@ -7,10 +7,9 @@ def load_model(MODEL_NAME, precision=torch.float16, use_lora=False):
     Loads the model and tokenizer. Optionally applies LoRA.
     """
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    # LLaMA models may not have a pad token so set it to the eos token
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.padding_side = 'left'
+
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = 'left'
 
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME, torch_dtype=precision, device_map="auto"

@@ -1,3 +1,4 @@
+import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel
@@ -21,10 +22,11 @@ def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
     # Non lora weights
     if not lora:
         if weights_pth is not None:
-            model = AutoModelForCausalLM.from_pretrained(
-                weights_pth, torch_dtype=PRESCISION, device_map="auto"
-            )
-            print(f"Loaded model weights from {weights_pth}")
+            state_dict_pth = os.path.join(weights_pth, "model_weights.pth")
+            state_dict = torch.load(state_dict_pth, map_location="cpu")
+            base_model.load_state_dict(state_dict)
+
+            print(f"Loaded model weights from {state_dict_pth}")
         
         print("Using the base model without LoRA weights.")
         return base_model, tokenizer

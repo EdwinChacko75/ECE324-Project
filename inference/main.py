@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from model import load_model
 from dataset import load_dataset, extract_final_number, compute_accuracy
-from utils import save_outputs_to_file, create_run_directory, load_config 
+from utils import save_outputs_to_file, create_run_directory, load_config, get_final_dir
 
 # Load config
 config = load_config()
@@ -22,7 +22,7 @@ PRESCISION = getattr(torch, config["precision"])  # float16 -> torch.float16
 
 RUN_DIR = create_run_directory(config["checkpoint_dir"], MODEL_NAME[:4])
 OUTPUT_FILE = os.path.join(RUN_DIR, config["output_file_name"])
-FINAL_DIR = os.path.join(config["checkpoint_dir"], f"{os.path.basename(os.path.dirname(LOAD_MODEL_PTH))}{os.path.basename(RUN_DIR)[4:]}"  )
+FINAL_DIR = get_final_dir(LOAD_MODEL_PTH, RUN_DIR, config["checkpoint_dir"])
 
 def main():
     # Load dataset

@@ -14,7 +14,7 @@ shuffle_eval: false
 masked_language_modelling: false # Bert style
 
 # Training Hyperparameters
-batch_size: 8
+batch_size: 16
 eval_batch_size: 8
 epochs: 3
 learning_rate: 5e-5 #2e-4

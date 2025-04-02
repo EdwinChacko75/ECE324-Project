@@ -3,6 +3,13 @@ import json
 import datetime
 import yaml
 
+def get_final_dir(model, run, cp):
+    if model is not None:
+        model_identifier = f"{os.path.basename(os.path.dirname(model))}{os.path.basename(run)[4:]}"
+        return os.path.join(cp, model_identifier)
+    else:
+        return run
+
 def save_outputs_to_json(output_path, all_outputs):
     """
     Saves all outputs in a structured JSON format.
