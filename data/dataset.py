@@ -4,8 +4,7 @@ import re
 from fractions import Fraction
 import math
 
-from sympy import sympify
-from latex2sympy import latex2sympy
+
 
 BATCH_SIZE = 32
 

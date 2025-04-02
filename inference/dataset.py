@@ -4,9 +4,6 @@ import re
 from fractions import Fraction
 import math
 
-from sympy import sympify
-from latex2sympy import latex2sympy
-
 
 # for gsm8k
 def gsm8k_instruct(example):
@@ -69,6 +66,29 @@ def prepare_example_3(example):
     )
 
     ground_truth_value = str(example.get("Answer"))
+    
+
+    return {
+        "prompt": p,
+        "ground_truth": ground_truth,
+        "ground_truth_value": ground_truth_value,
+    }
+    
+# for logiqa
+def prepare_example_4(example):
+    context = example.get("context")
+    query = example.get("query")
+    options = example.get("options")
+    
+    question = context + ' ' + query + ' ' + str(options)
+    ground_truth = None
+    ground_truth_value = str(example.get("Answer"))
+
+    p = (
+        f"Question: {question}\n"
+    )
+
+    
     
 
     return {
@@ -164,12 +184,7 @@ def process_latex_answer(answer):
     text_match = re.match(r"\\text\{(.+?)\}", answer)
     if text_match:
         return text_match.group(1).strip()  # Extract text
-
-    # Handle mathematical expressions
-    try:
-        return latex2sympy(answer).evalf()  # Convert to numeric value
-    except:
-        return answer  # Fallback for unknown cases
+    return answer  # Fallback for unknown cases
     
 def general_compute_accuracy(predictions, ground_truths):
     """
@@ -187,17 +202,6 @@ def general_compute_accuracy(predictions, ground_truths):
         pred_normalized = str(pred_processed).strip().lower()
         gt_normalized = str(gt_processed).strip().lower()
 
-        # # Skip if either is None (invalid input)
-        # if pred_normalized is None or gt_normalized is None:
-        #     continue
-
-        # # Check if both are numbers and use approximate comparison
-        # if isinstance(pred_normalized, float) and isinstance(gt_normalized, float):
-        #     if math.isclose(pred_normalized, gt_normalized, rel_tol=1e-6):
-        #         correct += 1
-        #         continue
-
-        # Fallback to exact string match for text
         if pred_normalized == gt_normalized:
             correct += 1
 
@@ -216,13 +220,22 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn, inst
     elif dataset_name == "HuggingFaceH4/MATH-500":
         dataset = datasets.load_dataset(dataset_name, split="test")
         prepared_dataset = dataset.map(prepare_example_2, load_from_cache_file=False)
+    elif dataset_name == "lucasmccabe/logiqa/test":
+        dataset = datasets.load_dataset("lucasmccabe/logiqa", split="test")
+        prepared_dataset = dataset.map(prepare_example_4, load_from_cache_file=False)
         
     # training data
     elif dataset_name == "Maxwell-Jia/AIME_2024":
         dataset = datasets.load_dataset(dataset_name, split="train")  
         prepared_dataset = dataset.map(prepare_example_3, load_from_cache_file=False)
+    elif dataset_name == "lucasmccabe/logiqa/train":
+        dataset = datasets.load_dataset("lucasmccabe/logiqa", split="train")
+        prepared_dataset = dataset.map(prepare_example_4, load_from_cache_file=False)
     
-    
+    # validation data
+    elif dataset_name == "lucasmccabe/logiqa/validation":
+        dataset = datasets.load_dataset("lucasmccabe/logiqa", split="validation")
+        prepared_dataset = dataset.map(prepare_example_4, load_from_cache_file=False)
     ### can add more datasets
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
