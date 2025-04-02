@@ -8,6 +8,9 @@
 !*.yaml
 !*.md
 !*.gitignore
+!*.txt
+!*.gitattributes
+
 
 # Allow directories so Python files in subdirectories are tracked
 !*/
