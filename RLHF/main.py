@@ -1,7 +1,7 @@
 # main.py
 import argparse
-from reward_model import train_reward_model
-from rlhf_training import train_rlhf_policy
+from reward_model.reward_model import train_reward_model
+from policy_model.train_policy import train_rlhf_policy
 from utils import load_config
 
 def main():
