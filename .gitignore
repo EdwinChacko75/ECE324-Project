@@ -10,6 +10,7 @@
 !*.gitignore
 !*.txt
 !*.gitattributes
+# !*.bin
 
 
 # Allow directories so Python files in subdirectories are tracked
