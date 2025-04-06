@@ -1,6 +1,6 @@
 # config.yaml
 dataset:
-  train_path: /home/ubuntu/reasonix/RLHF/data/train.jsonl  
+  train_path: /home/ubuntu/reasonix/RLHF/data/test.jsonl  
   test_path: /home/ubuntu/reasonix/RLHF/data/test.jsonl  
   split: "train"
   use_cache: true
@@ -14,7 +14,7 @@ model:
 training:
   reward_model:
     epochs: 1
-    batch_size: 16
+    batch_size: 8
     learning_rate: 2e-5
     logging_steps: 1000
     save_steps: 10000000000
@@ -33,3 +33,6 @@ training:
     output_dir: "./models/rlhf_policy"
     max_new_tokens: 50
     lora: true
+
+# Run command: 
+# /home/ubuntu/.local/bin/torchrun --nproc_per_node=2 main.py --task=reward

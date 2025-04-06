@@ -49,7 +49,7 @@ def train_reward_model(config):
         learning_rate=config["training"]["reward_model"]["learning_rate"],
         logging_steps=config["training"]["reward_model"]["logging_steps"],
         save_steps=config["training"]["reward_model"]["save_steps"],
-        evaluation_strategy=config["training"]["reward_model"]["evaluation_strategy"],
+        eval_strategy=config["training"]["reward_model"]["evaluation_strategy"],
         save_strategy=config["training"]["reward_model"]["save_strategy"],
         eval_steps=config["training"]["reward_model"]["metric_steps"],
         fp16=config["training"]["reward_model"]["fp16"],
@@ -58,6 +58,8 @@ def train_reward_model(config):
         save_safetensors=False,
         label_names=[],
         max_grad_norm=1.0,
+        ddp_find_unused_parameters=False
+
     )
 
     trainer = RewardTrainer(
