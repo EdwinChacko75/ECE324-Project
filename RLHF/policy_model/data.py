@@ -20,4 +20,3 @@ def load_rlhf_datasets(config, tokenizer):
         batch_size=config["training"]["rlhf"]["batch_size"],
         shuffle=True
     )
-

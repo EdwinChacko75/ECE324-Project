@@ -2,8 +2,17 @@ import torch
 from transformers import GenerationConfig
 from tqdm import tqdm
 from torch.optim import Adam
-from .modelling import compute_reward, compute_logprob
 
+def compute_reward(model, input_ids, attention_mask, seq_len):
+    outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+    values = outputs[2].squeeze(-1)
+    batch_indices = torch.arange(values.size(0), device=values.device)
+    return values[batch_indices, seq_len - 1]
+
+def compute_logprob(model, input_ids, attention_mask):
+    logits, _, _ = model(input_ids=input_ids, attention_mask=attention_mask)
+    log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
+    return log_probs.gather(dim=-1, index=input_ids.unsqueeze(-1)).squeeze(-1)
 
 def compute_rlhf_loss(policy_model, rewards, input_ids, attention_mask, device, seq_len, compute_logprob, compute_reward):
     outputs = policy_model(input_ids=input_ids, attention_mask=attention_mask)

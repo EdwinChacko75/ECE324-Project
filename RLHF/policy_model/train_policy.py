@@ -1,5 +1,5 @@
 
-from .modelling import load_tokenizer, load_policy_model, load_reward_model
+from .model import load_tokenizer, load_policy_model, load_reward_model
 from .data import load_rlhf_datasets
 from .train import run_training_loop
 import torch
