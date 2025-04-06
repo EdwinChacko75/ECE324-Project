@@ -1,3 +1,4 @@
+from torch.nn import DataParallel
 from transformers import AutoTokenizer
 from trl import AutoModelForCausalLMWithValueHead
 from peft import LoraConfig, get_peft_model
@@ -9,7 +10,7 @@ def load_tokenizer(base_model):
     return tokenizer
 
 def load_policy_model(config, device):
-    base_model = config["model"]["base_model"]
+    base_model = config["training"]["rlhf"]["policy_model_dir"]
     model = AutoModelForCausalLMWithValueHead.from_pretrained(base_model, num_labels=1)
 
     if config["training"]["rlhf"].get("use_lora", False):
@@ -22,7 +23,7 @@ def load_policy_model(config, device):
         )
         model = get_peft_model(model, lora_config)
 
-    return model.to(device)
+    return DataParallel(model).to(device)
 
 def load_reward_model(config, device):
     reward_model_path = config["training"]["rlhf"]["reward_model_dir"]

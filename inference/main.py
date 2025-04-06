@@ -23,6 +23,7 @@ PRESCISION = getattr(torch, config["precision"])  # float16 -> torch.float16
 RUN_DIR = create_run_directory(config["checkpoint_dir"], MODEL_NAME[:4])
 OUTPUT_FILE = os.path.join(RUN_DIR, config["output_file_name"])
 FINAL_DIR = get_final_dir(LOAD_MODEL_PTH, RUN_DIR, config["checkpoint_dir"])
+WEIGHTS_PATH = LOAD_MODEL_PTH if LOAD_MODEL_PTH is not None else MODEL_NAME
 
 def main():
     # Load dataset
@@ -31,7 +32,7 @@ def main():
 
     # Load model
     print("Loading Model...")
-    model, tokenizer = load_model(MODEL_NAME, PRESCISION)
+    model, tokenizer = load_model(WEIGHTS_PATH, PRESCISION)
     model.eval()
     print("Running Inference...")
 

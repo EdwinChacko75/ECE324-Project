@@ -12,7 +12,7 @@ def load_model(MODEL_NAME, precision=torch.float16, use_lora=False):
     tokenizer.padding_side = 'left'
 
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME, torch_dtype=precision, device_map="auto"
+        MODEL_NAME, torch_dtype=precision#, device_map="auto"
     )
 
     if use_lora:

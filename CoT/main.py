@@ -8,7 +8,7 @@ from transformers import (
 )
 from model import load_model
 from dataset import load_and_prepare_dataset
-from utils import create_run_directory, load_config
+from utils import create_run_directory, load_config, is_main_process
 from metrics import compute_metrics
 
 def main():
@@ -79,7 +79,7 @@ def main():
         gradient_accumulation_steps=config.get("gradient_accumulation_steps", 1),
         fp16=(PRECISION == torch.float16),
         bf16=(PRECISION == torch.bfloat16),
-        evaluation_strategy=config.get("evaluation_strategy", "steps"),
+        eval_strategy=config.get("eval_strategy", "steps"),
         eval_steps=config.get("eval_steps", 100),
         save_strategy=config.get("save_strategy", "steps"),
         save_steps=config.get("save_steps", 200),
@@ -90,6 +90,7 @@ def main():
         load_best_model_at_end=config.get("load_best_model_at_end", False),
         # early_stopping=config.get("early_stopping", False),
         # repetition_penalty=config.get("repetition_penalty", 1.0),
+        ddp_find_unused_parameters=False
 
     )
 
@@ -109,19 +110,20 @@ def main():
     trainer.train()
 
     # Save final model
-    print("Saving model...")
-    tokenizer.save_pretrained(FINAL_MODEL_DIR)
-    if USE_LORA:
-        model = model.merge_and_unload() 
-        
-    model.save_pretrained(FINAL_MODEL_DIR)
+    if is_main_process():
+        print("Saving model...")
+        tokenizer.save_pretrained(FINAL_MODEL_DIR)
+        if USE_LORA:
+            model = model.merge_and_unload() 
+            
+        model.save_pretrained(FINAL_MODEL_DIR)
 
-    # Move out from temporary run directory
-    print(f"Training complete. Model saved to: {FINAL_CP_DIR}")
-    if os.path.exists(FINAL_CP_DIR):
-        shutil.rmtree(FINAL_CP_DIR)  
-    shutil.move(RUN_DIR, FINAL_CP_DIR)
-    
+        # Move out from temporary run directory
+        print(f"Training complete. Model saved to: {FINAL_CP_DIR}")
+        if os.path.exists(FINAL_CP_DIR):
+            shutil.rmtree(FINAL_CP_DIR)  
+        shutil.move(RUN_DIR, FINAL_CP_DIR)
+        
 
 if __name__ == "__main__":
     main()

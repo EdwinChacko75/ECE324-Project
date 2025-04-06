@@ -3,14 +3,13 @@
 
 # Allow Python files
 !*.py
-!*.json
 !*.jsonl
 !*.yaml
-!*.md
 !*.gitignore
 !*.txt
 !*.gitattributes
 # !*.bin
+!README.md
 
 
 # Allow directories so Python files in subdirectories are tracked

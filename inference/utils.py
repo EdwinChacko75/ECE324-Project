@@ -2,6 +2,10 @@ import os
 import json
 import datetime
 import yaml
+import torch.distributed as dist
+
+def is_main_process():
+    return not dist.is_available() or not dist.is_initialized() or dist.get_rank() == 0
 
 def get_final_dir(model, run, cp):
     if model is not None:
