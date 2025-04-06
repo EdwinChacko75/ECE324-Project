@@ -2,7 +2,6 @@ import json
 import re
 
 def load_jsonl(path):
-    """Load a .jsonl file and return a list of JSON objects."""
     with open(path, "r") as f:
         return [json.loads(line) for line in f if line.strip()]
 
@@ -34,8 +33,12 @@ def extract_cleaned_fields(entry):
 
 def process_inference_file(input_path, output_path):
     raw_entries = load_jsonl(input_path)
-    cleaned = [extract_cleaned_fields(entry) for entry in raw_entries if extract_cleaned_fields(entry)]
-
+    #cleaned = [extract_cleaned_fields(entry) for entry in raw_entries if extract_cleaned_fields(entry)]
+    cleaned = []
+    for entry in raw_entries:
+        cleaned_entry = extract_cleaned_fields(entry)
+        if cleaned_entry:
+            cleaned.append(cleaned_entry)
     # Save as JSONL for training
     with open(output_path, "w") as f:
         for item in cleaned:

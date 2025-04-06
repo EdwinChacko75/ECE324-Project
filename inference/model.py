@@ -5,9 +5,6 @@ from peft import get_peft_model, LoraConfig, TaskType, PeftModel
 
 
 def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
-    """
-    Load the specified model with the specified prescision.
-    """
     if weights_pth is not None:
         tokenizer = AutoTokenizer.from_pretrained(weights_pth)
     else:

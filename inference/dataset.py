@@ -7,13 +7,6 @@ import math
 
 # for gsm8k
 def gsm8k_instruct(example):
-    """
-    Prepare a single example for inference:
-      - Extract the math problem as the question.
-      - Extract the detailed ground truth chain-of-thought.
-      - Parse out the final answer (ground truth value) which is preceded by "\boxed{".
-      - Format the prompt for the LLM.
-    """
     question = example.get("question")
     ground_truth = example.get("answer")
     
@@ -39,7 +32,7 @@ def gsm8k_instruct(example):
     }
     
 # for math500
-def prepare_example_2(example):
+def math500_instruct(example):
     question = example.get("problem")
     ground_truth = example.get("solution")
 
@@ -57,7 +50,7 @@ def prepare_example_2(example):
     }
 
 # for aime2024
-def prepare_example_3(example):
+def aime2024_instruct(example):
     question = example.get("Problem")
     ground_truth = example.get("Solution")
 
@@ -75,7 +68,7 @@ def prepare_example_3(example):
     }
     
 # for logiqa
-def prepare_example_4(example):
+def logiqa_instruct(example):
     context = example.get("context")
     query = example.get("query")
     options = example.get("options")
@@ -88,21 +81,13 @@ def prepare_example_4(example):
         f"Question: {question}\n"
     )
 
-    
-    
-
     return {
         "prompt": p,
         "ground_truth": ground_truth,
         "ground_truth_value": ground_truth_value,
     }
     
-
-
 def collate_fn(batch):
-    """
-    Collate function for batching.
-    """
     prompts = [item["prompt"] for item in batch]
     ground_truths = [item["ground_truth"] for item in batch]
     ground_truth_values = [item["ground_truth_value"] for item in batch]
@@ -114,11 +99,6 @@ def collate_fn(batch):
 
 
 def extract_final_number(text):
-    """
-    Extracts the final boxed answer from the model's output.
-    - Supports spaces inside \boxed{}
-    - Handles integers, decimals, negative numbers, and scientific notation.
-    """
     if not text:
         return None
 
@@ -146,18 +126,6 @@ def extract_final_number(text):
 
 
 def compute_accuracy(predicted_values, ground_truth_values):
-    """
-    Computes accuracy by comparing lists of predicted and ground truth numbers.
-    """
-    # correct = 0
-    # for pred, truth in zip(predicted_values, ground_truth_values):
-    #     if isinstance(pred, str):
-    #         pred = extract_final_number(pred)
-    #     if isinstance(pred, str):
-    #         continue
-    #     if isinstance(pred, (int, float)) and truth is not None and math.isclose(pred, float(truth.replace(",", "")), rel_tol=1e-6):
-    #         correct +=1
-
     correct = sum(
         1
         for pred, truth in zip(predicted_values, ground_truth_values)
@@ -171,10 +139,6 @@ def compute_accuracy(predicted_values, ground_truth_values):
 
 
 def process_latex_answer(answer):
-    """
-    Converts Math500-style answers into numerical or text format.
-    Ensures ground truth values are evaluated correctly.
-    """
     if not answer:
         return None
 
@@ -187,10 +151,6 @@ def process_latex_answer(answer):
     return answer  # Fallback for unknown cases
     
 def general_compute_accuracy(predictions, ground_truths):
-    """
-    Computes accuracy by comparing predictions and ground truths.
-    Handles both numerical and non-numerical (textual) answers.
-    """
     correct = 0
     total = len(predictions)
 
@@ -208,9 +168,6 @@ def general_compute_accuracy(predictions, ground_truths):
     return correct / total if total > 0 else 0
 
 def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn, instruct=None):
-    """
-    Get the dataloader for a specified dataset.
-    """
     # Load dataset and prepare it
     
     # testing data
@@ -219,31 +176,27 @@ def load_dataset(dataset_name="gsm8k", batch_size=8, collate_fn=collate_fn, inst
         prepared_dataset = dataset.map(gsm8k_instruct, load_from_cache_file=False)
     elif dataset_name == "HuggingFaceH4/MATH-500":
         dataset = datasets.load_dataset(dataset_name, split="test")
-        prepared_dataset = dataset.map(prepare_example_2, load_from_cache_file=False)
+        prepared_dataset = dataset.map(math500_instruct, load_from_cache_file=False)
     elif dataset_name == "lucasmccabe/logiqa/test":
         dataset = datasets.load_dataset("lucasmccabe/logiqa", split="test")
-        prepared_dataset = dataset.map(prepare_example_4, load_from_cache_file=False)
+        prepared_dataset = dataset.map(logiqa_instruct, load_from_cache_file=False)
         
     # training data
     elif dataset_name == "Maxwell-Jia/AIME_2024":
         dataset = datasets.load_dataset(dataset_name, split="train")  
-        prepared_dataset = dataset.map(prepare_example_3, load_from_cache_file=False)
+        prepared_dataset = dataset.map(aime2024_instruct, load_from_cache_file=False)
     elif dataset_name == "lucasmccabe/logiqa/train":
         dataset = datasets.load_dataset("lucasmccabe/logiqa", split="train")
-        prepared_dataset = dataset.map(prepare_example_4, load_from_cache_file=False)
+        prepared_dataset = dataset.map(logiqa_instruct, load_from_cache_file=False)
     
     # validation data
     elif dataset_name == "lucasmccabe/logiqa/validation":
         dataset = datasets.load_dataset("lucasmccabe/logiqa", split="validation")
-        prepared_dataset = dataset.map(prepare_example_4, load_from_cache_file=False)
+        prepared_dataset = dataset.map(logiqa_instruct, load_from_cache_file=False)
     ### can add more datasets
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
     
-    
-    # breakpoint()
-    # prepared_dataset = dataset.map(prepare_example, load_from_cache_file=False)
-    # prepared_dataset =dataset
     prepared_dataset = prepared_dataset.map(
         lambda x: {"prompt_length": len(x["prompt"])},
 	load_from_cache_file=False

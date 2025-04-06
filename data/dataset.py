@@ -34,8 +34,6 @@ def prepare_example_1(example):
         "Always conclude with: \\boxed{<answer>}."
     )
 
-
-
     return {
         "prompt": prompt,
         "ground_truth": ground_truth,
@@ -166,11 +164,7 @@ def process_latex_answer(answer):
     if text_match:
         return text_match.group(1).strip()  # Extract text
 
-    # Handle mathematical expressions
-    try:
-        return latex2sympy(answer).evalf()  # Convert to numeric value
-    except:
-        return answer  # Fallback for unknown cases
+    return answer  # Fallback for unknown cases
     
 def general_compute_accuracy(predictions, ground_truths):
     """
@@ -188,17 +182,6 @@ def general_compute_accuracy(predictions, ground_truths):
         pred_normalized = str(pred_processed).strip().lower()
         gt_normalized = str(gt_processed).strip().lower()
 
-        # # Skip if either is None (invalid input)
-        # if pred_normalized is None or gt_normalized is None:
-        #     continue
-
-        # # Check if both are numbers and use approximate comparison
-        # if isinstance(pred_normalized, float) and isinstance(gt_normalized, float):
-        #     if math.isclose(pred_normalized, gt_normalized, rel_tol=1e-6):
-        #         correct += 1
-        #         continue
-
-        # Fallback to exact string match for text
         if pred_normalized == gt_normalized:
             correct += 1
 
