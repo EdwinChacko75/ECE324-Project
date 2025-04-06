@@ -31,7 +31,7 @@ def main():
 
     # Load model
     print("Loading Model...")
-    model, tokenizer = load_model(MODEL_NAME, PRESCISION, lora=LoRA_MODEL, weights_pth=LOAD_MODEL_PTH)
+    model, tokenizer = load_model(MODEL_NAME, PRESCISION)
     model.eval()
     print("Running Inference...")
 

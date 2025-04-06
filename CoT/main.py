@@ -112,9 +112,9 @@ def main():
     print("Saving model...")
     tokenizer.save_pretrained(FINAL_MODEL_DIR)
     if USE_LORA:
-        model.save_pretrained(FINAL_MODEL_DIR)
-    else:
-        torch.save(model.state_dict(), os.path.join(FINAL_MODEL_DIR, "model_weights.pth"))
+        model = model.merge_and_unload() 
+        
+    model.save_pretrained(FINAL_MODEL_DIR)
 
     # Move out from temporary run directory
     print(f"Training complete. Model saved to: {FINAL_CP_DIR}")
