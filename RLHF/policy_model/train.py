@@ -2,6 +2,7 @@ import torch
 from transformers import GenerationConfig
 from tqdm import tqdm
 from torch.optim import Adam
+import torch.distributed as dist
 
 def compute_reward(model, input_ids, attention_mask, seq_len):
     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
@@ -30,8 +31,12 @@ def compute_rlhf_loss(policy_model, rewards, input_ids, attention_mask, device, 
     return policy_loss.mean() + 0.5 * value_loss.mean()
 
 def generate_rollout(policy_model, input_ids, attention_mask, gen_config):
+    
+    # Safely get the underlying model if wrapped in DDP
+    model = policy_model.module if hasattr(policy_model, "module") else policy_model
+
     with torch.no_grad():
-        generated = policy_model.generate(
+        generated = model.generate(
             input_ids=input_ids,
             attention_mask=attention_mask,
             **gen_config.to_dict()
@@ -39,11 +44,9 @@ def generate_rollout(policy_model, input_ids, attention_mask, gen_config):
 
     prompt_len = input_ids.shape[1]
     generated_tokens = generated[:, prompt_len:]
-
     combined_ids = torch.cat([input_ids, generated_tokens], dim=1)
     gen_attention = torch.ones_like(generated_tokens)
     combined_attention_mask = torch.cat([attention_mask, gen_attention], dim=1)
-
     return combined_ids, combined_attention_mask, combined_ids.shape[1]
 
 def run_training_loop(config, policy_model, reward_model, dataloader, tokenizer, device):
@@ -57,6 +60,10 @@ def run_training_loop(config, policy_model, reward_model, dataloader, tokenizer,
     num_epochs = config["training"]["rlhf"]["epochs"]
 
     for epoch in range(num_epochs):
+        # If using a DistributedSampler, set the epoch to reshuffle data differently every epoch
+        if hasattr(dataloader, 'sampler') and hasattr(dataloader.sampler, 'set_epoch'):
+            dataloader.sampler.set_epoch(epoch)
+            
         epoch_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")
 
         for batch in epoch_bar:
@@ -83,11 +90,20 @@ def run_training_loop(config, policy_model, reward_model, dataloader, tokenizer,
 
             epoch_bar.set_postfix(loss=loss.item())
 
+        if dist.is_initialized():
+            dist.barrier()
+
     print("RLHF policy training complete!")
-    output_dir = config["training"]["rlhf"]["output_dir"]
-    if config["training"]["rlhf"].get("use_lora", False):
-        model = policy_model.merge_and_unload()
-        model.save_pretrained(output_dir)
-    else:
-        policy_model.save_pretrained(output_dir)
-    tokenizer.save_pretrained(output_dir)
+    # Save the model only from the main process (rank 0)
+    if not dist.is_initialized() or dist.get_rank() == 0:
+        output_dir = config["training"]["rlhf"]["output_dir"]
+        if config["training"]["rlhf"].get("use_lora", False):
+            # When using DDP, access the underlying module
+            model_to_save = policy_model.module.merge_and_unload() if dist.is_initialized() else policy_model.merge_and_unload()
+            model_to_save.save_pretrained(output_dir)
+        else:
+            if dist.is_initialized():
+                policy_model.module.save_pretrained(output_dir)
+            else:
+                policy_model.save_pretrained(output_dir)
+        tokenizer.save_pretrained(output_dir)

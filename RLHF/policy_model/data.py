@@ -1,5 +1,6 @@
 import torch
 from datasets import load_dataset
+import torch.distributed as dist
 
 def load_rlhf_datasets(config, tokenizer):
     dataset_path = config["dataset"]["train_path"]
@@ -13,10 +14,16 @@ def load_rlhf_datasets(config, tokenizer):
             padding="max_length"
         )
 
-    dataset = dataset.map(tokenize_fn, batched=True)
+    dataset = dataset.map(tokenize_fn, batched=True, batch_size=1000)
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask"])
+    
+    sampler = None
+    if dist.is_initialized():
+        sampler = torch.utils.data.distributed.DistributedSampler(dataset)
+    
     return torch.utils.data.DataLoader(
         dataset,
         batch_size=config["training"]["rlhf"]["batch_size"],
-        shuffle=True
+        shuffle=(sampler is None),
+        sampler=sampler
     )
