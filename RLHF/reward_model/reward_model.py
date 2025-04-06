@@ -59,7 +59,6 @@ def train_reward_model(config):
         label_names=[],
         max_grad_norm=1.0,
         ddp_find_unused_parameters=False
-
     )
 
     trainer = RewardTrainer(

@@ -1,6 +1,6 @@
 # config.yaml
 dataset:
-  train_path: /home/ubuntu/reasonix/RLHF/data/test.jsonl  
+  train_path: /home/ubuntu/reasonix/RLHF/data/train.jsonl  
   test_path: /home/ubuntu/reasonix/RLHF/data/test.jsonl  
   split: "train"
   use_cache: true
@@ -14,7 +14,7 @@ model:
 training:
   reward_model:
     epochs: 1
-    batch_size: 8
+    batch_size: 24
     learning_rate: 2e-5
     logging_steps: 1000
     save_steps: 10000000000
@@ -26,7 +26,7 @@ training:
     output_dir: "./models/reward_model"
 
   rlhf:
-    epochs: 3
+    epochs: 1
     batch_size: 4
     learning_rate: 1e-5
     reward_model_dir: "/home/ubuntu/reasonix/RLHF/models/reward_model/Llama-3.2-3B_lora"

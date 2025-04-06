@@ -12,7 +12,8 @@ def load_prm800k(config, tokenizer, split="train"):
             x["input"], truncation=True, max_length=config["model"]["max_length"], padding="max_length"
         ) | {"labels": x["label"]},
         batched=True,
-        load_from_cache_file=config["dataset"]["use_cache"]
+        batch_size=10000,
+        # load_from_cache_file=config["dataset"]["use_cache"]
     )
     dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "labels"])
     return dataset
