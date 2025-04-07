@@ -1,38 +1,50 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+# model.py
+import torch
+from typing import Tuple, Union
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    PreTrainedTokenizer,
+    PreTrainedModel,
+)
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel
 
 
-def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
+def load_model(
+    MODEL_NAME: str, precision: torch.dtype = torch.float16, use_lora: bool = False
+) -> Tuple[Union[PreTrainedModel, PeftModel], PreTrainedTokenizer]:
+    """
+    Loads a pretrained causal language model and its tokenizer. Optionally applies LoRA (Low-Rank Adaptation)
+    using the PEFT library for parameter-efficient fine-tuning.
+
+    Args:
+        MODEL_NAME (str): Hugging Face model identifier or path to the saved model directory.
+        precision (torch.dtype, optional): The desired precision for model weights. Defaults to torch.float16.
+        use_lora (bool, optional): Whether to apply LoRA on top of the base model. Defaults to False.
+
+    Returns:
+        tuple: (PreTrainedModel, PreTrainedTokenizer)
+            The loaded model (optionally wrapped with LoRA) and tokenizer.
+    """
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = 'left'
+    tokenizer.padding_side = "left"
 
-    base_model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME, torch_dtype=PRESCISION, device_map="auto"
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        torch_dtype=precision,
     )
 
-    # TODO base model weights (non lora)
-    # if weights_pth is not None and not lora:
-    #     base_model.load_wegits()
-
-    if not lora:
-        print("Using the base model without LoRA.")
-        return base_model, tokenizer
-
-    # Configure LoRA parameters
-    lora_config = LoraConfig(
-        task_type=TaskType.CAUSAL_LM,
-        r=8,
-        lora_alpha=32,
-        lora_dropout=0.1,
-    )
-    if weights_pth is not None:
-        model = PeftModel.from_pretrained(base_model, weights_pth)
-        print(f"Loaded LoRA weights from {weights_pth}")
+    if use_lora:
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=8,
+            lora_alpha=32,
+            lora_dropout=0.1,
+        )
+        model = get_peft_model(model, lora_config)
+        print("LoRA is enabled and has been applied to the model.")
     else:
-        model = get_peft_model(base_model, lora_config)
+        print("Using the base model without LoRA.")
 
-
-    print("LoRA is enabled and has been applied to the model.")
     return model, tokenizer
-

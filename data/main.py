@@ -1,3 +1,4 @@
+# main.py
 import os
 import torch
 from tqdm import tqdm
@@ -21,14 +22,18 @@ PRESCISION = getattr(torch, config["precision"])  # float16 -> torch.float16
 
 CP_DIR = os.path.join(os.getcwd(), config["checkpoint_dir"])
 OUTPUT_FILE = config["output_file"]
+
+
 def main():
     # Load dataset
     print("Loading Dataset...")
-    _, dataloader = load_dataset(dataset_name=DATASET, batch_size=BATCH_SIZE, split=config['split'])
+    _, dataloader = load_dataset(
+        dataset_name=DATASET, batch_size=BATCH_SIZE, split=config["split"]
+    )
 
     # Load model
     print("Loading Model...")
-    model, tokenizer = load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None)
+    model, tokenizer = load_model(MODEL_NAME, PRESCISION)
     model.eval()
     print("Running Inference...")
     json_output_path = OUTPUT_FILE
@@ -37,7 +42,9 @@ def main():
         prompts = batch["prompts"]
         batch_ground_truth_values = batch["ground_truth_values"]
 
-        inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to("cuda")
+        inputs = tokenizer(
+            prompts, return_tensors="pt", padding=True, truncation=True
+        ).to("cuda")
 
         with torch.no_grad():
             with torch.autocast("cuda", dtype=PRESCISION):
@@ -72,9 +79,12 @@ def main():
     print(f"Saved structured JSON output to {json_output_path}")
 
     # Clean the data
-    output_jsonl = os.path.join(os.path.dirname(json_output_path), f"{DATASET}_{config['split']}.jsonl")
+    output_jsonl = os.path.join(
+        os.path.dirname(json_output_path), f"{DATASET}_{config['split']}.jsonl"
+    )
     process_inference_file(json_output_path, output_jsonl)
     validate_data(output_jsonl)
+
 
 if __name__ == "__main__":
     main()
