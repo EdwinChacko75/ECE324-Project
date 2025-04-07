@@ -9,8 +9,8 @@ from transformers import (
 )
 from model import load_model
 from dataset import load_and_prepare_dataset
-from utils import create_run_directory, load_config, is_main_process
 from metrics import compute_metrics
+from utils import create_run_directory, load_config, is_main_process
 
 def main():
     # Load configuration
@@ -42,7 +42,7 @@ def main():
     FINAL_MODEL_DIR = os.path.join(RUN_DIR, "final_model")
 
     lora_name = "lora" if USE_LORA else "base"
-    final_dir =f"{MODEL_NAME[-2:]}_{EPOCHS}_{LEARNING_RATE}_{lora_name}_{DATASET}"
+    final_dir = f"{MODEL_NAME[-2:]}_{EPOCHS}_{LEARNING_RATE}_{lora_name}_{DATASET}"
     FINAL_CP_DIR = os.path.join(os.path.dirname(RUN_DIR), final_dir)
     # Load model and tokenizer
     print("Loading model...")
@@ -65,7 +65,9 @@ def main():
     )
 
     # Set up data collator for Causal LM
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=config['masked_language_modelling'])
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer, mlm=config["masked_language_modelling"]
+    )
 
     # Set up HuggingFace training arguments
     training_args = TrainingArguments(
@@ -91,8 +93,7 @@ def main():
         load_best_model_at_end=config.get("load_best_model_at_end", False),
         # early_stopping=config.get("early_stopping", False),
         # repetition_penalty=config.get("repetition_penalty", 1.0),
-        ddp_find_unused_parameters=False
-
+        ddp_find_unused_parameters=False,
     )
 
     # Initialize HuggingFace Trainer
@@ -115,16 +116,16 @@ def main():
         print("Saving model...")
         tokenizer.save_pretrained(FINAL_MODEL_DIR)
         if USE_LORA:
-            model = model.merge_and_unload() 
-            
+            model = model.merge_and_unload()
+
         model.save_pretrained(FINAL_MODEL_DIR)
 
         # Move out from temporary run directory
         print(f"Training complete. Model saved to: {FINAL_CP_DIR}")
         if os.path.exists(FINAL_CP_DIR):
-            shutil.rmtree(FINAL_CP_DIR)  
+            shutil.rmtree(FINAL_CP_DIR)
         shutil.move(RUN_DIR, FINAL_CP_DIR)
-        
+
 
 if __name__ == "__main__":
     main()

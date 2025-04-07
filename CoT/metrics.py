@@ -2,8 +2,8 @@
 import math
 import re
 from fractions import Fraction
-from typing import Optional, Union, List, Callable, Dict, Any
 from transformers import PreTrainedTokenizerBase
+from typing import Optional, Union, List, Callable, Dict, Any
 
 
 def extract_final_number(text: str) -> Optional[Union[int, float]]:
@@ -50,7 +50,9 @@ def extract_final_number(text: str) -> Optional[Union[int, float]]:
         return float(num_match) if num_match else None
 
 
-def compute_accuracy(predicted_values: List[Optional[Union[int, float]]], ground_truth_values: List[str]) -> float:
+def compute_accuracy(
+    predicted_values: List[Optional[Union[int, float]]], ground_truth_values: List[str]
+) -> float:
     """
     Compute accuracy between predicted and ground truth numerical values.
 
@@ -75,7 +77,9 @@ def compute_accuracy(predicted_values: List[Optional[Union[int, float]]], ground
     return correct / total if total > 0 else 0
 
 
-def compute_metrics(tokenizer: PreTrainedTokenizerBase) -> Callable[[Any], Dict[str, float]]:
+def compute_metrics(
+    tokenizer: PreTrainedTokenizerBase,
+) -> Callable[[Any], Dict[str, float]]:
     """
     Returns a metrics function for Hugging Face Trainer evaluation.
 
@@ -85,6 +89,7 @@ def compute_metrics(tokenizer: PreTrainedTokenizerBase) -> Callable[[Any], Dict[
     Returns:
         function: A function that computes accuracy given eval_preds.
     """
+
     def metrics(eval_preds: Any) -> Dict[str, float]:
         preds, labels = eval_preds
 

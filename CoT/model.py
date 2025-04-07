@@ -2,22 +2,16 @@
 import torch
 from typing import Tuple, Union
 from transformers import (
-    AutoTokenizer, 
-    AutoModelForCausalLM, 
-    PreTrainedTokenizer, 
-    PreTrainedModel
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    PreTrainedTokenizer,
+    PreTrainedModel,
 )
-from peft import (
-    get_peft_model, 
-    LoraConfig, 
-    TaskType, 
-    PeftModel
-)
+from peft import get_peft_model, LoraConfig, TaskType, PeftModel
+
 
 def load_model(
-    MODEL_NAME: str,
-    precision: torch.dtype = torch.float16,
-    use_lora: bool = False
+    MODEL_NAME: str, precision: torch.dtype = torch.float16, use_lora: bool = False
 ) -> Tuple[Union[PreTrainedModel, PeftModel], PreTrainedTokenizer]:
     """
     Loads a pretrained causal language model and its tokenizer. Optionally applies LoRA (Low-Rank Adaptation)
@@ -34,7 +28,7 @@ def load_model(
     """
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = 'left'
+    tokenizer.padding_side = "left"
 
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,

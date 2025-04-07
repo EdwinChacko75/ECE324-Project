@@ -1,10 +1,10 @@
 # utils.py
 import os
 import json
-import datetime
-from typing import Optional, Dict, Any, List
 import yaml
+import datetime
 import torch.distributed as dist
+from typing import Optional, Dict, Any, List
 
 
 def is_main_process() -> bool:
@@ -37,7 +37,9 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
     config["epochs"] = int(config["epochs"])
     config["batch_size"] = int(config["batch_size"])
     config["eval_batch_size"] = int(config.get("eval_batch_size", config["batch_size"]))
-    config["gradient_accumulation_steps"] = int(config.get("gradient_accumulation_steps", 1))
+    config["gradient_accumulation_steps"] = int(
+        config.get("gradient_accumulation_steps", 1)
+    )
     config["logging_steps"] = int(config.get("logging_steps", 50))
     config["eval_steps"] = int(config.get("eval_steps", 100))
     config["save_steps"] = int(config.get("save_steps", 200))
@@ -48,7 +50,7 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
 def create_run_directory(
     base_dir: str = "checkpoints",
     model_name: str = "run",
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Creates a unique directory for saving model checkpoints and logs.
@@ -86,7 +88,7 @@ def save_outputs_to_file(
     generated_texts: List[str],
     ground_truth_values: List[str],
     batch_acc: float,
-    cumulative_accuracy: float
+    cumulative_accuracy: float,
 ) -> None:
     """
     Saves model outputs, corresponding prompts, and ground truth values to a structured text file.
@@ -110,7 +112,9 @@ def save_outputs_to_file(
         f.write(f"Batch Accuracy: {batch_acc}\n")
         f.write(f"Cumulative Accuracy: {cumulative_accuracy}\n")
 
-        for i, (prompt, output, ground_truth) in enumerate(zip(prompts, generated_texts, ground_truth_values)):
+        for i, (prompt, output, ground_truth) in enumerate(
+            zip(prompts, generated_texts, ground_truth_values)
+        ):
             f.write(f"\nExample {i+1}:\n")
             f.write(f"Prompt: {prompt}\n")
             f.write(f"Generated Output: {output}\n")
