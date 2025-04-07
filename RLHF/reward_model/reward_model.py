@@ -1,7 +1,9 @@
+# reward_model.py
 from transformers import TrainingArguments
 from .data_loader import load_prm800k, get_output_dir
 from .trainer import RewardTrainer, compute_metrics
 from .model import load_model, save_model
+
 
 def train_reward_model(config):
     reward_model = config["training"]["reward_model"]
@@ -32,7 +34,7 @@ def train_reward_model(config):
         save_safetensors=False,
         label_names=[],
         max_grad_norm=1.0,
-        ddp_find_unused_parameters=False
+        ddp_find_unused_parameters=False,
     )
 
     # Custom Trainer
@@ -41,7 +43,7 @@ def train_reward_model(config):
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
-        compute_metrics=compute_metrics
+        compute_metrics=compute_metrics,
     )
 
     trainer.train()

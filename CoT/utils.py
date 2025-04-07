@@ -4,7 +4,7 @@ import json
 import yaml
 import datetime
 import torch.distributed as dist
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 
 def is_main_process() -> bool:
@@ -79,44 +79,3 @@ def create_run_directory(
             json.dump(config, f, indent=4)
 
     return run_dir
-
-
-def save_outputs_to_file(
-    output_file: str,
-    batch_index: int,
-    prompts: List[str],
-    generated_texts: List[str],
-    ground_truth_values: List[str],
-    batch_acc: float,
-    cumulative_accuracy: float,
-) -> None:
-    """
-    Saves model outputs, corresponding prompts, and ground truth values to a structured text file.
-
-    Args:
-        output_file (str): Path to the output log file.
-        batch_index (int): Index of the current batch.
-        prompts (list): List of input prompts.
-        generated_texts (list): Model-generated answers.
-        ground_truth_values (list): Reference/correct answers.
-        batch_acc (float): Accuracy of the current batch.
-        cumulative_accuracy (float): Running average accuracy.
-    """
-    if batch_index == 0:
-        with open(output_file, "w") as f:
-            f.write("Model Outputs Log\n")
-            f.write("=========================================\n")
-
-    with open(output_file, "a") as f:
-        f.write(f"\n=== Batch {batch_index} ===\n")
-        f.write(f"Batch Accuracy: {batch_acc}\n")
-        f.write(f"Cumulative Accuracy: {cumulative_accuracy}\n")
-
-        for i, (prompt, output, ground_truth) in enumerate(
-            zip(prompts, generated_texts, ground_truth_values)
-        ):
-            f.write(f"\nExample {i+1}:\n")
-            f.write(f"Prompt: {prompt}\n")
-            f.write(f"Generated Output: {output}\n")
-            f.write(f"True Value: {ground_truth}\n")
-            f.write("-----------------------------------------\n")

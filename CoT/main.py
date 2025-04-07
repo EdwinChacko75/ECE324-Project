@@ -12,6 +12,7 @@ from dataset import load_and_prepare_dataset
 from metrics import compute_metrics
 from utils import create_run_directory, load_config, is_main_process
 
+
 def main():
     # Load configuration
     config = load_config()

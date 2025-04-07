@@ -1,6 +1,6 @@
 # config.yaml
 dataset:
-  train_path: /home/ubuntu/reasonix/RLHF/data/test.jsonl  
+  train_path: /home/ubuntu/reasonix/RLHF/data/train.jsonl  
   test_path: /home/ubuntu/reasonix/RLHF/data/test.jsonl  
   split: "train"
   use_cache: true
@@ -8,7 +8,6 @@ dataset:
 model:
   base_model: meta-llama/Llama-3.2-3B
   lora: true
-  weights_path:
   max_length: 512
 
 training:
@@ -30,13 +29,11 @@ training:
     batch_size: 6
     learning_rate: 1e-5
     reward_model_dir: "/home/ubuntu/reasonix/RLHF/models/reward_model/Llama-3.2-3B_lora"
-    # policy_model_dir: meta-llama/Llama-3.2-3B
     policy_model_dir: "/home/ubuntu/reasonix/CoT/checkpoints/3B_3_5e-05_base_gsm8k/final_model"
     output_dir: "./models/rlhf_policy/3B_CoT_lora_test/"
     max_new_tokens: 64
     lora: true
     grad_checkpointing: true
-    ddp:
 
 # Run command: 
 # /home/ubuntu/.local/bin/torchrun --nproc_per_node=2 main.py --task=reward
