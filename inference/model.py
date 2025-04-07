@@ -1,6 +1,8 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from typing import Tuple
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 
-def load_model(MODEL_PATH, PRECISION):
+def load_model(MODEL_PATH: str, PRECISION: torch.dtype) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """
     Load a merged model (with or without LoRA), saved via model.save_pretrained(...).
 
@@ -9,7 +11,7 @@ def load_model(MODEL_PATH, PRECISION):
         PRECISION (torch.dtype): Precision to load the model in.
 
     Returns:
-        model, tokenizer
+        tuple (AutoModelForCausalLM, AutoTokenizer): The loaded model and tokenizer.
     """
     print(f"Loading model from {MODEL_PATH} with dtype {PRECISION}...")
     

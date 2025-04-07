@@ -26,4 +26,4 @@ checkpoint_dir: /home/ubuntu/reasonix/inference/checkpoints/
 output_file_name: outputs.txt
 
 # Optional: CUDA config (uncomment to use)
-cuda_visible_devices: "0,1"
+cuda_visible_devices: #"0,1"
