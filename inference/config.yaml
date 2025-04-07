@@ -1,29 +1,38 @@
 # config.yaml
+# ===============================
+# Model Configuration
+# ===============================
+model_name: meta-llama/Llama-3.2-3B         # Base model to load from HF Hub or local path
 
-# Model
-model_name: meta-llama/Llama-3.2-3B
-# model_name: deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+use_lora: false                             # Whether to load LoRA weights
+weights_path: /home/ubuntu/reasonix/RLHF/models/rlhf_policy/3B_CoT_lora_test
+# Path to fine-tuned model or LoRA weights (used if use_lora is true)
 
-use_lora: false
-weights_path: /home/ubuntu/reasonix/RLHF/models/rlhf_policy/3B_CoT_lora_test #/home/ubuntu/reasonix/CoT/checkpoints/3B_3_5e-05_lora_gsm8k/final_model
+# ===============================
+# Generation / Inference Settings
+# ===============================
+precision: bfloat16                         # Options: float16, bfloat16, float32
+batch_size: 64                              # Number of samples to process per batch
+max_new_tokens: 512                         # Maximum number of tokens to generate (i.e., output length)
+temperature: 0.7                            # Sampling temperature (higher = more random)
+top_p: 0.95                                 # Nucleus sampling (top-p sampling) threshold
+do_sample: false                            # Whether to use sampling instead of greedy/beam search
+early_stopping: true                        # Stop generation when all beams finish
+repetition_penalty: 1.0                     # Penalize repeated tokens (1.0 = no penalty)
+num_beams: 3                                # Number of beams for beam search (set to 1 for greedy)
 
-# Training / Inference
-precision: bfloat16 #bfloat16
-batch_size: 64
-max_new_tokens: 512 # Effective max length
-temperature: 0.7
-top_p: 0.95
-do_sample: false
-early_stopping: true
-repetition_penalty: 1.0
-num_beams: 3
+# ===============================
+# Dataset Configuration
+# ===============================
+dataset_name: gsm8k                         # Dataset used for evaluation or prompt generation
 
-# Dataset
-dataset_name: gsm8k
+# ===============================
+# Output / Logging
+# ===============================
+checkpoint_dir: /home/ubuntu/reasonix/inference/checkpoints/  # Directory to store logs, checkpoints, etc.
+output_file_name: outputs.txt                               # File to save generated outputs
 
-# Paths
-checkpoint_dir: /home/ubuntu/reasonix/inference/checkpoints/
-output_file_name: outputs.txt
-
-# Optional: CUDA config (uncomment to use)
-cuda_visible_devices: #"0,1"
+# ===============================
+# CUDA / Device Configuration
+# ===============================
+cuda_visible_devices:                       # Optional: manually specify GPU devices (e.g., "0,1")

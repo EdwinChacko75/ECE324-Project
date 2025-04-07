@@ -1,3 +1,4 @@
+# main.py
 import os
 import torch
 import shutil
@@ -16,7 +17,7 @@ if config.get("cuda_visible_devices"):
 
 MODEL_NAME = config["model_name"]
 LoRA_MODEL = config["use_lora"]
-LOAD_MODEL_PTH = config["weights_path"] 
+LOAD_MODEL_PTH = config["weights_path"]
 BATCH_SIZE = config["batch_size"]
 PRESCISION = getattr(torch, config["precision"])  # float16 -> torch.float16
 
@@ -25,10 +26,13 @@ OUTPUT_FILE = os.path.join(RUN_DIR, config["output_file_name"])
 FINAL_DIR = get_final_dir(LOAD_MODEL_PTH, RUN_DIR, config["checkpoint_dir"])
 WEIGHTS_PATH = LOAD_MODEL_PTH if LOAD_MODEL_PTH is not None else MODEL_NAME
 
+
 def main():
     # Load dataset
     print("Loading Dataset...")
-    _, dataloader = load_dataset(dataset_name=config["dataset_name"], batch_size=BATCH_SIZE)
+    _, dataloader = load_dataset(
+        dataset_name=config["dataset_name"], batch_size=BATCH_SIZE
+    )
 
     # Load model
     print("Loading Model...")
@@ -43,7 +47,9 @@ def main():
         prompts = batch["prompts"]
         batch_ground_truth_values = batch["ground_truth_values"]
 
-        inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to("cuda")
+        inputs = tokenizer(
+            prompts, return_tensors="pt", padding=True, truncation=True
+        ).to("cuda")
 
         with torch.no_grad():
             with torch.autocast("cuda", dtype=PRESCISION):
@@ -84,10 +90,9 @@ def main():
     print(f"Model Accuracy: {accuracy * 100:.2f}%")
     print(f"Model Accuracy: {sum(accuracies) / len(accuracies) * 100:.2f}%")
 
-
     print(f"Inference complete. Outputs saved to: {FINAL_DIR}")
     if os.path.exists(FINAL_DIR):
-        shutil.rmtree(FINAL_DIR)  
+        shutil.rmtree(FINAL_DIR)
     shutil.move(RUN_DIR, FINAL_DIR)
 
 
