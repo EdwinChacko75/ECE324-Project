@@ -58,7 +58,7 @@ def run_training_loop(config, policy_model, reward_model, dataloader, tokenizer,
     )
 
     num_epochs = config["training"]["rlhf"]["epochs"]
-
+    
     for epoch in range(num_epochs):
         # If using a DistributedSampler, set the epoch to reshuffle data differently every epoch
         if hasattr(dataloader, 'sampler') and hasattr(dataloader.sampler, 'set_epoch'):
@@ -92,18 +92,27 @@ def run_training_loop(config, policy_model, reward_model, dataloader, tokenizer,
 
         if dist.is_initialized():
             dist.barrier()
+        
 
     print("RLHF policy training complete!")
     # Save the model only from the main process (rank 0)
     if not dist.is_initialized() or dist.get_rank() == 0:
         output_dir = config["training"]["rlhf"]["output_dir"]
-        if config["training"]["rlhf"].get("use_lora", False):
+        if config["training"]["rlhf"].get("lora", False):
+            print(f"Saving model to {output_dir} with merged LoRA adapters.")
+
             # When using DDP, access the underlying module
-            model_to_save = policy_model.module.merge_and_unload() if dist.is_initialized() else policy_model.merge_and_unload()
+            lora_merged = policy_model.module.merge_and_unload() if dist.is_initialized() else policy_model.merge_and_unload()
+            model_to_save = lora_merged.base_model.model if hasattr(lora_merged, "base_model") else lora_merged
             model_to_save.save_pretrained(output_dir)
         else:
+            print(f"Saving model to {output_dir}.")
             if dist.is_initialized():
-                policy_model.module.save_pretrained(output_dir)
+                # model with value head inside DDP
+                model_to_save = policy_model.module.base_model.model
             else:
-                policy_model.save_pretrained(output_dir)
+                # model with value head without DDP
+                model_to_save = policy_model.base_model.model
+            model_to_save.save_pretrained(output_dir)
+
         tokenizer.save_pretrained(output_dir)
