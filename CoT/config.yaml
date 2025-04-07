@@ -1,43 +1,56 @@
 # config.yaml
+# ===============================
+# Model Configuration
+# ===============================
+model_name: "meta-llama/Llama-3.2-3B" # HF hub model or local path
+use_lora: false                       # Whether to apply LoRA 
 
-# Model and Tokenizer
-model_name: "meta-llama/Llama-3.2-3B"
-use_lora: 
-
-# Dataset
+# ===============================
+# Dataset Settings
+# ===============================
 dataset_name: "gsm8k"
 train_split: "train"
 eval_split: "test"
 max_length: 512
 shuffle_train: true
 shuffle_eval: false
-masked_language_modelling: false # Bert style
+masked_language_modelling: false     # Enable MLM (e.g., BERT-style)? Usually false for Causal LM
 
+# ===============================
 # Training Hyperparameters
+# ===============================
 batch_size: 16
 eval_batch_size: 8
 epochs: 3
-learning_rate: 5e-5 #2e-4
+learning_rate: 5e-5                  # Common range: 1e-5 to 2e-4
 weight_decay: 0.01
 warmup_steps: 100
-lr_scheduler_type: "linear"  # e.g., linear, cosine, constant
+lr_scheduler_type: "linear"          # Options: linear, cosine, constant, etc.
 gradient_accumulation_steps: 1
 
-# Precision
-precision: "bfloat16"  # Options: float16, bfloat16, float32
+# ===============================
+# Precision Settings
+# ===============================
+precision: "bfloat16"                # Options: float16, bfloat16, float32
 
+# ===============================
 # Logging & Saving
+# ===============================
 logging_steps: 50
 save_steps: 150000
 eval_steps: 150000
 save_total_limit: 2
-eval_strategy: "no"  # none | steps | epoch
-save_strategy: "no"
+eval_strategy: "no"                 # Options: no, steps, epoch
+save_strategy: "no"                 # Options: no, steps, epoch
 
-# Output and Checkpointing
-checkpoint_dir: /home/ubuntu/reasonix/CoT/checkpoints/
+# ===============================
+# Checkpointing & Output
+# ===============================
+checkpoint_dir: "/home/ubuntu/reasonix/CoT/checkpoints/"
 
-# Trainer options
+# ===============================
+# Advanced Trainer Settings
+# ===============================
 gradient_checkpointing: false
 fp16_full_eval: false
 load_best_model_at_end: true

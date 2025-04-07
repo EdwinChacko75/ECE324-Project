@@ -1,7 +1,10 @@
-from datasets import load_dataset
+# dataset.py
 import os
+from typing import Dict, Any
+from datasets import load_dataset, Dataset
+from transformers import PreTrainedTokenizerBase
 
-def prepare_example(example):
+def prepare_example(example: Dict[str, Any]) -> Dict[str, str]:
     """
     Prepare a single example from the dataset by formatting it into a Chain-of-Thought (CoT) style prompt.
     
@@ -25,7 +28,11 @@ def prepare_example(example):
         "full_text": full_answer
     }
 
-def tokenize_function(example, tokenizer, max_length=512):
+def tokenize_function(
+    example: Dict[str, str],
+    tokenizer: PreTrainedTokenizerBase,
+    max_length: int = 512
+) -> Dict[str, Any]:
     """
     Tokenize the example's prompt and full text, and prepare labels for training.
     
@@ -44,11 +51,6 @@ def tokenize_function(example, tokenizer, max_length=512):
     full_tokens = tokenizer(full_text, truncation=True, max_length=max_length)
     prompt_tokens = tokenizer(prompt, truncation=True, max_length=max_length)
 
-    # Append EOS token if there's room
-    # if len(full_tokens["input_ids"]) < max_length:
-    #     full_tokens["input_ids"].append(tokenizer.eos_token_id)
-    #     full_tokens["attention_mask"].append(1)
-
     # Create labels: copy input_ids, then mask out prompt tokens with -100
     labels = full_tokens["input_ids"].copy()
     prompt_len = len(prompt_tokens["input_ids"])
@@ -59,9 +61,12 @@ def tokenize_function(example, tokenizer, max_length=512):
 
     return full_tokens
 
-
-
-def load_and_prepare_dataset(tokenizer, dataset_name="gsm8k", split="train", max_length=512):
+def load_and_prepare_dataset(
+    tokenizer: PreTrainedTokenizerBase,
+    dataset_name: str = "gsm8k",
+    split: str = "train",
+    max_length: int = 512
+) -> Dataset:
     """
     Load a dataset, prepare each example with CoT formatting, and tokenize the dataset.
     
@@ -74,23 +79,17 @@ def load_and_prepare_dataset(tokenizer, dataset_name="gsm8k", split="train", max
     Returns:
         Dataset: A HuggingFace Dataset object with tokenized examples ready for training.
     """
-    
-    # Construct file path to check if a local JSONL file exists
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     file_path = os.path.join(base_dir, "data", f"{dataset_name}_{split}.jsonl")
 
     if os.path.exists(file_path):
-        # Load dataset from a local JSON file if it exists
         dataset = load_dataset("json", data_files=file_path, split="train")
         print(f"Loading processed data from {file_path}")
     else:
-        # Otherwise, load dataset from HuggingFace Hub
         dataset = load_dataset(dataset_name, "main", split=split)
-        
-    # Format each example into prompt + full_text format
+
     dataset = dataset.map(prepare_example, load_from_cache_file=False)
-    
-    # Tokenize the formatted dataset and remove original columns
+
     tokenized_dataset = dataset.map(
         lambda ex: tokenize_function(ex, tokenizer, max_length),
         batched=True,
@@ -98,4 +97,3 @@ def load_and_prepare_dataset(tokenizer, dataset_name="gsm8k", split="train", max
         load_from_cache_file=False,
     )
     return tokenized_dataset
-
