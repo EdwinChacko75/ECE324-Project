@@ -3,7 +3,7 @@ import torch
 from tqdm import tqdm
 
 from model import load_model
-from dataset import load_dataset, extract_final_number, compute_accuracy
+from dataset import load_dataset, extract_final_number
 from utils import load_config, save_jsonl_append
 from clean_data import process_inference_file, validate_data
 

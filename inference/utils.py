@@ -3,9 +3,9 @@ import json
 import datetime
 import yaml
 import torch.distributed as dist
-
+ 
 def is_main_process():
-    return not dist.is_available() or not dist.is_initialized() or dist.get_rank() == 0
+     return not dist.is_available() or not dist.is_initialized() or dist.get_rank() == 0
 
 def get_final_dir(model, run, cp):
     if model is not None:
@@ -15,16 +15,10 @@ def get_final_dir(model, run, cp):
         return run
 
 def save_outputs_to_json(output_path, all_outputs):
-    """
-    Saves all outputs in a structured JSON format.
-    """
     with open(output_path, "w") as f:
         json.dump(all_outputs, f, indent=2)
 
 def save_jsonl_append(file_path, examples):
-    """
-    Appends a list of dicts (examples) to a JSONL file.
-    """
     with open(file_path, "a") as f:
         for ex in examples:
             json.dump(ex, f)
@@ -35,10 +29,6 @@ def load_config(config_path="config.yaml"):
         return yaml.safe_load(f)
 
 def create_run_directory(base_dir="checkpoints", model_name="run", config=None):
-    """
-    Creates a unique logging directory for each run.
-    TODO: Config logging
-    """
     os.makedirs(base_dir, exist_ok=True)
 
     timestamp = datetime.datetime.now().strftime("%d_%H-%M")
@@ -55,18 +45,8 @@ def create_run_directory(base_dir="checkpoints", model_name="run", config=None):
     return run_dir
 
 
-def save_outputs_to_file(
-    output_file,
-    batch_index,
-    prompts,
-    generated_texts,
-    ground_truth_values,
-    batch_acc,
-    cumulative_accuracy,
-):
-    """
-    Saves model outputs, corresponding prompts, and ground truth values to a structured text file.
-    """
+def save_outputs_to_file(output_file,batch_index,prompts,generated_texts,ground_truth_values,batch_acc,
+    cumulative_accuracy):
     # Set the file hearder. Can maybe include config details later.
     if batch_index == 0:
         with open(output_file, "w") as f:

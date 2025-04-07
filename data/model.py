@@ -1,12 +1,8 @@
-import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import get_peft_model, LoraConfig, TaskType, PeftModel
 
 
 def load_model(MODEL_NAME, PRESCISION, lora=False, weights_pth=None):
-    """
-    Load the specified model with the specified prescision.
-    """
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = 'left'
