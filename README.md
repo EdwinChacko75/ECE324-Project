@@ -34,7 +34,8 @@ Our pipeline consists of the following key components:
 3. **CoT Supervised Fine-Tuning (SFT)**: Fine-tune the baseline model using data of step-by-step solutions generated in the reasoning distillation step.
 4. **RLHF with PPO**: Further align model outputs with human-preferred reasoning using Proximal Policy Optimization.
 
-![Pipeline](./assets/pipeline.png)
+<img src="./assets/pipeline.png" alt="pipeline" style="max-width: 50%;" />
+
 
 
 ## Evaluation Metrics
@@ -53,13 +54,13 @@ We evaluate the models using:
 
 ### Baseline Performance
 
-<img src="./assets/piechart.jpg" alt="Pie Chart" style="max-width: 50%;" />
+<img src="./assets/piechart.jpg" alt="Pie Chart" style="max-width: 25%;" />
 
 
 ### Comparison between baseline and finetuned model
 
-![Bar Chart](./assets/barchart.png)
-<img src="./assets/archart.png" alt="Pie Chart" style="max-width: 75%;" />
+
+<img src="./assets/barchart.png" alt="bar Chart" style="max-width: 25%;" />
 
 - **Baseline**: 16.8% accuracy and GSM8K, and 31% responses fell into Category 4, meaning the model completely failed to reason
 - **After finetuning**: accuracy improved to **53.6%** on GSM8K, and the number of responses in Category 4 reduced to **18%** — finetuned model are more capable to reason now
@@ -113,35 +114,6 @@ Bottom: Fintuned model (structured CoT, correct answer)
 |   |   utils.py
 |   |   
 |   \---checkpoints
-|       +---1B_3_5e-5_lora_gsm8k
-|       |       outputs.txt
-|       |       
-|       +---1B_baseline_gsm8k
-|       |       outputs.txt
-|       |       
-|       +---3B-instruct_baseline
-|       |       outputs.txt
-|       |       
-|       +---3B-instruct_cot
-|       |       outputs.txt
-|       |       
-|       +---3B_3_5e-05_base_gsm8k
-|       |       outputs.txt
-|       |       
-|       +---3B_3_5e-05_lora_gsm8k
-|       |       outputs.txt
-|       |       
-|       +---3B_baseline_gsm8k
-|       |       outputs.txt
-|       |       
-|       +---3B_baseline_gsm8k_2
-|       |       outputs.txt
-|       |       
-|       +---rlhf_policy_07_16-23
-|       |       outputs.txt
-|       |       
-|       \---unknown_meta
-|               outputs.txt
 |               
 \---RLHF
     |   config.yaml
