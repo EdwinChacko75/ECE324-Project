@@ -176,7 +176,14 @@ python3 main.py
 
 ```bash
 cd RLHF
-python3 main.py
+```
+# Reward Model training
+```bash
+torchrun --nproc_per_node=2 main.py --task=reward
+```
+# Policy Model Training
+```bash
+torchrun --nproc_per_node=2 main.py --task=rlhf
 ```
 ## License
 
