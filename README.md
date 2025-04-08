@@ -53,12 +53,13 @@ We evaluate the models using:
 
 ### Baseline Performance
 
-![Pie Chart](./assets/piechart.jpg)
+<img src="./assets/piechart.jpg" alt="Pie Chart" style="max-width: 50%;" />
 
 
 ### Comparison between baseline and finetuned model
 
 ![Bar Chart](./assets/barchart.png)
+<img src="./assets/archart.png" alt="Pie Chart" style="max-width: 75%;" />
 
 - **Baseline**: 16.8% accuracy and GSM8K, and 31% responses fell into Category 4, meaning the model completely failed to reason
 - **After finetuning**: accuracy improved to **53.6%** on GSM8K, and the number of responses in Category 4 reduced to **18%** — finetuned model are more capable to reason now
@@ -69,6 +70,106 @@ We evaluate the models using:
 
 Top: Baseline model output (repeating steps without proceeding)  
 Bottom: Fintuned model (structured CoT, correct answer)
+
+## Code Structure
+
+```text |   .gitattributes
+|   .gitignore
+|   env.yaml
+|   LICENSE
+|   README.md
+|   structure.txt
+|   
++---assets
+|       barchart.png
+|       improved_example.jpg
+|       piechart.jpg
+|       pipeline.png
+|       
++---CoT
+|       config.yaml
+|       dataset.py
+|       main.py
+|       metrics.py
+|       model.py
+|       utils.py
+|       
++---data
+|       clean_data.py
+|       config.yaml
+|       dataset.py
+|       gsm8k_train.jsonl
+|       main.py
+|       model.py
+|       train.jsonl
+|       utils.py
+|       
++---inference
+|   |   config.yaml
+|   |   dataset.py
+|   |   delay_run.sh
+|   |   main.py
+|   |   model.py
+|   |   utils.py
+|   |   
+|   \---checkpoints
+|       +---1B_3_5e-5_lora_gsm8k
+|       |       outputs.txt
+|       |       
+|       +---1B_baseline_gsm8k
+|       |       outputs.txt
+|       |       
+|       +---3B-instruct_baseline
+|       |       outputs.txt
+|       |       
+|       +---3B-instruct_cot
+|       |       outputs.txt
+|       |       
+|       +---3B_3_5e-05_base_gsm8k
+|       |       outputs.txt
+|       |       
+|       +---3B_3_5e-05_lora_gsm8k
+|       |       outputs.txt
+|       |       
+|       +---3B_baseline_gsm8k
+|       |       outputs.txt
+|       |       
+|       +---3B_baseline_gsm8k_2
+|       |       outputs.txt
+|       |       
+|       +---rlhf_policy_07_16-23
+|       |       outputs.txt
+|       |       
+|       \---unknown_meta
+|               outputs.txt
+|               
+\---RLHF
+    |   config.yaml
+    |   evaluate_reward_model.py
+    |   main.py
+    |   utils.py
+    |   
+    +---data
+    |       prepare_prm_data.py
+    |       test.jsonl
+    |       train.jsonl
+    |       
+    +---policy_model
+    |       data.py
+    |       model.py
+    |       train.py
+    |       train_policy.py
+    |       __init__.py
+    |       
+    \---reward_model
+            data_loader.py
+            model.py
+            reward_model.py
+            trainer.py
+            __init__.py
+            
+```
+
 
 
 ## How to Run Code
