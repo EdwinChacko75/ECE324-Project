@@ -139,10 +139,51 @@ Bottom: Fintuned model (structured CoT, correct answer)
 
 
 
-## How to Run Code
+## Getting Started
 
-_Coming soon... (code setup, training, inference instructions)_
+### 1. Clone the Repository
 
+```bash
+git clone https://github.com/EdwinChacko75/reasonix.git
+cd reasonix
+```
+
+### 2. Create and Activate the Conda Environment
+
+```bash
+conda env create -f env.yaml
+conda activate reasonix
+```
+
+## Running Experiments
+Adjust config files as required.
+
+### Chain-of-Thought (CoT) Training
+
+```bash
+cd CoT
+python3 main.py
+```
+
+### RLHF Training
+
+```bash
+cd RLHF
+```
+Reward Model training
+```bash
+torchrun --nproc_per_node=2 main.py --task=reward
+```
+Policy Model Training
+```bash
+torchrun --nproc_per_node=2 main.py --task=rlhf
+```
+### Inference Evaluation
+
+```bash
+cd inference
+python3 main.py
+```
 
 ## License
 
