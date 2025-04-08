@@ -77,13 +77,12 @@ Bottom: Fintuned model (structured CoT, correct answer)
 |   README.md
 |   structure.txt
 |   
-+---assets
++---assets                    # Folder containing the images in README
 |       barchart.png
 |       improved_example.jpg
-|       piechart.jpg
 |       pipeline.png
 |       
-+---CoT
++---CoT                       # Implementation of COT finetuning pipeline
 |       config.yaml
 |       dataset.py
 |       main.py
@@ -91,7 +90,7 @@ Bottom: Fintuned model (structured CoT, correct answer)
 |       model.py
 |       utils.py
 |       
-+---data
++---data                      # Data preprocessing with reasoning distillation
 |       clean_data.py
 |       config.yaml
 |       dataset.py
@@ -101,7 +100,7 @@ Bottom: Fintuned model (structured CoT, correct answer)
 |       train.jsonl
 |       utils.py
 |       
-+---inference
++---inference                 # Evaluation Pipeline for both baseline model and finetuned model
 |   |   config.yaml
 |   |   dataset.py
 |   |   delay_run.sh
@@ -111,7 +110,7 @@ Bottom: Fintuned model (structured CoT, correct answer)
 |   |   
 |   \---checkpoints
 |               
-\---RLHF
+\---RLHF                      # Training and Evaluation code for reward model, and training code for policy model
     |   config.yaml
     |   evaluate_reward_model.py
     |   main.py
@@ -140,51 +139,11 @@ Bottom: Fintuned model (structured CoT, correct answer)
 
 
 
-## Getting Started
+## How to Run Code
 
-### 1. Clone the Repository
+_Coming soon... (code setup, training, inference instructions)_
 
-```bash
-git clone https://github.com/EdwinChacko75/reasonix.git
-cd reasonix
-```
 
-### 2. Create and Activate the Conda Environment
-
-```bash
-conda env create -f env.yaml
-conda activate reasonix
-```
-
-## Running Experiments
-Adjust config files as required.
-
-### Chain-of-Thought (CoT) Training
-
-```bash
-cd CoT
-python3 main.py
-```
-
-### RLHF Training
-
-```bash
-cd RLHF
-```
-Reward Model training
-```bash
-torchrun --nproc_per_node=2 main.py --task=reward
-```
-Policy Model Training
-```bash
-torchrun --nproc_per_node=2 main.py --task=rlhf
-```
-### Inference Evaluation
-
-```bash
-cd inference
-python3 main.py
-```
 ## License
 
 MIT License. See [LICENSE](./LICENSE) for details.
