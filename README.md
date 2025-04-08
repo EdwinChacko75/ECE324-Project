@@ -52,18 +52,14 @@ We evaluate the models using:
 
 ## Results
 
-### Baseline Performance
-
-<img src="./assets/piechart.jpg" alt="Pie Chart" style="max-width: 25%;" />
-
-
 ### Comparison between baseline and finetuned model
 
 
 <img src="./assets/barchart.png" alt="bar Chart" style="max-width: 25%;" />
 
 - **Baseline**: 16.8% accuracy and GSM8K, and 31% responses fell into Category 4, meaning the model completely failed to reason
-- **After finetuning**: accuracy improved to **53.6%** on GSM8K, and the number of responses in Category 4 reduced to **18%** — finetuned model are more capable to reason now
+- **After COT SFT**: accuracy improved to **53.6%** on GSM8K, and the number of responses in Category 4 reduced to **18%** — finetuned model are more capable to reason now
+- **After applying RLHF**: accuracy slightly dropped to to **53.0.%** on GSM8K
 
 ### Sample Output Comparison
 
