@@ -59,7 +59,7 @@ We evaluate the models using:
 
 - **Baseline**: 16.8% accuracy and GSM8K, and 31% responses fell into Category 4, meaning the model completely failed to reason
 - **After COT SFT**: accuracy improved to **53.6%** on GSM8K, and the number of responses in Category 4 reduced to **18%** — finetuned model are more capable to reason now
-- **After applying RLHF**: accuracy slightly dropped to to **53.0.%** on GSM8K
+- **After applying RLHF**: accuracy slightly dropped to to **53.05%** on GSM8K. The reason is that we are limited by hardware so we couldn't train on the full dataset.
 
 ### Sample Output Comparison
 
