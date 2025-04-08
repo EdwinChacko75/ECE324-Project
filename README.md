@@ -157,13 +157,7 @@ conda activate reasonix
 ```
 
 ## Running Experiments
-
-### Inference Evaluation
-
-```bash
-cd inference
-python3 main.py
-```
+Adjust config files as required.
 
 ### Chain-of-Thought (CoT) Training
 
@@ -184,6 +178,12 @@ torchrun --nproc_per_node=2 main.py --task=reward
 Policy Model Training
 ```bash
 torchrun --nproc_per_node=2 main.py --task=rlhf
+```
+### Inference Evaluation
+
+```bash
+cd inference
+python3 main.py
 ```
 ## License
 
