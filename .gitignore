@@ -11,6 +11,8 @@
 !*.sh
 !README.md
 
-
+# Allow image files
+!* .png
+!* .jpg
 # Allow directories so Python files in subdirectories are tracked
 !*/
