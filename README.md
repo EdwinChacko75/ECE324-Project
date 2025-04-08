@@ -177,11 +177,11 @@ python3 main.py
 ```bash
 cd RLHF
 ```
-# Reward Model training
+#### Reward Model training
 ```bash
 torchrun --nproc_per_node=2 main.py --task=reward
 ```
-# Policy Model Training
+#### Policy Model Training
 ```bash
 torchrun --nproc_per_node=2 main.py --task=rlhf
 ```
