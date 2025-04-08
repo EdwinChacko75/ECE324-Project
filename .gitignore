@@ -9,6 +9,7 @@
 !*.txt
 !*.gitattributes
 !*.sh
+!*.pdf
 !README.md
 !LICENSE
 

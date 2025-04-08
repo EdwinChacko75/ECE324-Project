@@ -2,6 +2,8 @@
 
 This repository contains the code for our ECE324 project, a framework that improves the reasoning performance of LLMs on math tasks through a multi-stage pipeline involving Chain-of-Thought prompting, Reasoning Distillation, Supervised Fine-Tuning (SFT), and Reinforcement Learning with Human Feedback (RLHF).
 
+The full report is availble in the assets directory at "./assets/reasonix_report.pdf".
+
 
 ## Task Description
 
@@ -81,6 +83,7 @@ Bottom: Fintuned model (structured CoT, correct answer)
 |       barchart.png
 |       improved_example.jpg
 |       pipeline.png
+|       reasonix_report.pdf
 |       
 +---CoT                       # Implementation of COT finetuning pipeline
 |       config.yaml
