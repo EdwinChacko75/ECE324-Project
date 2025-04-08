@@ -12,7 +12,7 @@
 !README.md
 
 # Allow image files
-!* .png
-!* .jpg
+!*.png
+!*.jpg
 # Allow directories so Python files in subdirectories are tracked
 !*/

@@ -34,7 +34,7 @@ Our pipeline consists of the following key components:
 3. **CoT Supervised Fine-Tuning (SFT)**: Fine-tune the baseline model using data of step-by-step solutions generated in the reasoning distillation step.
 4. **RLHF with PPO**: Further align model outputs with human-preferred reasoning using Proximal Policy Optimization.
 
-![Pipeline](./assets/pipeline.jpg)
+![Pipeline](./assets/pipeline.png)
 
 
 ## Evaluation Metrics
